@@ -23,12 +23,12 @@ from psutils import *
 
 from preprocessscript import get_json_pkl
 
-workingfolder ="C:\\Users\\mxiong3\\Desktop\\ParaEMT_public\\"
+workingfolder = '.'
 os.chdir(workingfolder)
 
 def main():
     SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
-    DSrate = 20 # down sampling rate, i.e. results saved everpipy DSrate sim steps.
+    DSrate = 20 # down sampling rate, i.e. results saved every DSrate sim steps.
 
     systemN = 5 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
     N_row = 1  # haven't tested the mxn layout, so plz don't set N_row/N_col to other nums.
@@ -38,7 +38,8 @@ def main():
     Tlen = 10  # total simulation time length, second
     t_release_f = 0.0
     loadmodel_option = 1  # 1-const rlc, 2-const z
-    netMod = 'lu' 
+    netMod = 'lu'
+    nparts = 2 # number of blocks in BBD form
 
     output_snp_ful = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
     output_snp_1pt = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
@@ -49,9 +50,9 @@ def main():
 
     t0 = time.time()
     if SimMod == 0:
-        (pfd, ini, dyd, emt) = initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode = netMod) # mode='inv')
+        (pfd, ini, dyd, emt) = initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode = netMod, nparts=nparts)
     else:
-        (pfd, ini, dyd, emt) = initialize_from_snp(input_snp, netMod)
+        (pfd, ini, dyd, emt) = initialize_from_snp(input_snp, netMod, nparts)
 
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
@@ -149,19 +150,19 @@ def main():
         emt.x_pred = {0:emt.x_pred[1],1:emt.x_pred[2],2:emt.x_pv_1}
 
 
-        # save a queue for FFT analysis
-        if len(emt.fft_vabc) >= emt.fft_N:
-            emt.fft_vabc.append(emt.Vsol.copy())
-            emt.fft_vabc.pop()
-        else:
-            emt.fft_vabc.append(emt.Vsol.copy())
+        # # save a queue for FFT analysis
+        # if len(emt.fft_vabc) >= emt.fft_N:
+        #     emt.fft_vabc.append(emt.Vsol.copy())
+        #     emt.fft_vabc.pop()
+        # else:
+        #     emt.fft_vabc.append(emt.Vsol.copy())
 
 
         if np.mod(tn, DSrate) == 0:
             tsave = tsave + 1
             # save states
             emt.t.append(tn * ts)
-            print("%.4f" % emt.t[-1])   # move it here---Min
+            # print("%.4f" % emt.t[-1])   # move it here---Min
 
             emt.x[tsave] = emt.x_pv_1.copy()
 
@@ -205,7 +206,6 @@ def main():
 
 
     emt.dump_res(pfd, dyd, ini, SimMod, output_snp_ful, output_snp_1pt, output_res)
-
 
     elapsed = t_stop - t0
     init = t1 - t0

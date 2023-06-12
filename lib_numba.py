@@ -5,7 +5,7 @@ import numba
 
 # import math
 
-@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+# @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_set_coo(
         rows,
         cols,
@@ -20,7 +20,7 @@ def numba_set_coo(
     data[idx] = val
     return
 
-@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+# @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_InitNet(
         # pfd
         basemva,
@@ -990,8 +990,81 @@ def numba_updateIibr(
     return
 
 
+@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+def numba_BusMea(
+        #### Altered Arguments ####
+        x_bus_nx,
+        #### Constant Arguments ####
+        # self
+        Vsol,
+        x_bus_pv_1,
+        nbus,
+        ts,
+        t_release_f,
+        # pfd
+        ws,
+        # dyd
+        bus_odr,
+        vm_te,
+        pll_ke,
+        pll_te,
+        # other
+        tn,
+):
 
-# @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+    for i in numba.prange(nbus):
+
+        idx = i * bus_odr
+
+        ze_1 = x_bus_pv_1[idx]
+        de_1 = x_bus_pv_1[idx + 1]
+        we_1 = x_bus_pv_1[idx + 2]
+        vt_1 = x_bus_pv_1[idx + 3]
+        vtm_1 = x_bus_pv_1[idx + 4]
+        dvtm_1 = x_bus_pv_1[idx + 5]
+
+        va = Vsol[i]
+        vb = Vsol[i + nbus]
+        vc = Vsol[i + 2 * nbus]
+
+        # bus voltage magnitude
+        nx_vt = np.sqrt((va * va + vb * vb + vc * vc) * 2 / 3)
+        x_bus_nx[idx + 3] = nx_vt
+
+        # TODO: Seems like vtm_1 is the wrong quantity here...should be vt_1?
+        nx_dvtm = (nx_vt - vtm_1) / vm_te[i]
+        x_bus_nx[idx + 5] = nx_dvtm
+
+        nx_vtm = vtm_1 + nx_dvtm * ts
+        x_bus_nx[idx + 4] = nx_vtm
+
+        # bus freq and angle by PLL
+        # theta
+        theta = de_1 + ts * we_1 * ws
+
+        fshift = 2.0 * np.pi / 3.0
+        vq = -2.0/3.0 * (np.sin(theta) * va
+                        + np.sin(theta - fshift) * vb
+                        + np.sin(theta + fshift) * vc)
+
+        nx_ze = ze_1 + pll_ke[i] / pll_te[i] * vq * ts
+        nx_de = de_1 + we_1 * ws * ts
+
+        if tn * ts < t_release_f:
+            nx_we = 1.0
+        else:
+            nx_we = 1 + pll_ke[i] * vq + ze_1
+
+        x_bus_nx[idx] = nx_ze
+        x_bus_nx[idx + 1] = nx_de
+        x_bus_nx[idx + 2] = nx_we
+
+    #### End for loop
+
+    return
+
+
+@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_updateX(
         #### Altered Arguments ####
         x_pv_1,
@@ -1156,26 +1229,29 @@ def numba_updateX(
 
         idx = gen_genrou_odr * i + gen_genrou_xi_st
 
-        if i == i_gentrip and flag_gentrip == 0:
-            # x_pv_1_out[idx:idx+gen_genrou_odr] = 0.0
-            continue
+        # if i == i_gentrip and flag_gentrip == 0:
+        #     # x_pv_1_out[idx:idx+gen_genrou_odr] = 0.0
+        #     continue
 
         EFD2efd = ec_Rfd[i] / ec_Lad[i]
         pv_ed = x_pv_1[idx + 8]
         pv_eq = x_pv_1[idx + 9]
 
         # gov pm
-        if gov_type[i] == 'TGOV1': # TGOV1
+        if gov_type[i] == 2: # TGOV1
             idx_gov = np.where(gov_tgov1_idx==i)[0][0]
             pv_pm = x_pv_1[gov_tgov1_odr * idx_gov + gov_tgov1_xi_st + 2]
 
-        if gov_type[i] == 'HYGOV':
+        elif gov_type[i] == 1: # HYGOV
             idx_gov = np.where(gov_hygov_idx==i)[0][0]
             pv_pm = x_pv_1[gov_hygov_odr * idx_gov + gov_hygov_xi_st + 4]
 
-        if gov_type[i] == 'GAST':
+        elif gov_type[i] == 0: # GAST
             idx_gov = np.where(gov_gast_idx==i)[0][0]
             pv_pm = x_pv_1[gov_gast_odr * idx_gov + gov_gast_xi_st + 3]
+
+        else:
+            print("ERROR: Unrecognized governor type: ", gov_type[i])
 
 
         # theta
@@ -1417,7 +1493,7 @@ def numba_updateX(
 
         # gov
         gov_input = nx_w / ws - 1.0
-        if gov_type[i] == 'TGOV1':
+        if gov_type[i] == 2: # 'TGOV1'
             idx_gov = np.where(gov_tgov1_idx==i)[0][0]
             pv_idx = gov_tgov1_odr * idx_gov + gov_tgov1_xi_st
 
@@ -1448,7 +1524,7 @@ def numba_updateX(
             # nx_p3 = temp_nx_p3
 
 
-        if gov_type[i] == 'HYGOV':
+        if gov_type[i] == 1: # 'HYGOV'
 
             idx_gov = np.where(gov_hygov_idx==i)[0][0]
             pv_idx = gov_hygov_odr * idx_gov + gov_hygov_xi_st
@@ -1493,7 +1569,7 @@ def numba_updateX(
 
 
 
-        if gov_type[i] == 'GAST':
+        if gov_type[i] == 0: # 'GAST'
 
             idx_gov = np.where(gov_gast_idx==i)[0][0]
             pv_idx = gov_gast_odr * idx_gov + gov_gast_xi_st

@@ -5,71 +5,12 @@ import networkx as nx
 # import pandas as pd
 from scipy.sparse import csc_matrix
 import scipy.sparse.csgraph as csgraph
-# import nxmetis
+import nxmetis
 import scipy
 import numpy as np
-# from numpy import linalg as LA
-# from bbd_matrix_container import bbd_matrix, block_vector
-from mpi_bbd_matrix import bbd_matrix, block_vector
+from bbd_matrix import bbd_matrix, block_vector
 
 import time
-
-# def bbd_schur_lu(Abbd):
-#     n = int(Abbd.block_dim) # number of diagonal blocks
-#     m = n - 1
-
-#     # np.random.seed(1000)
-
-#     #  size of blocks -- NN x NN where NN is the dimension of the block. 
-#     Nblock = {}
-#     for i in range(n):
-#         Nblock[i] = Abbd.get_diag_block(i).shape[0]
-    
-   
-
-#     Lbbd = bbd_matrix(n)
-#     Ubbd = bbd_matrix(n)
-
-#     for i in range(n-1):
-#         lu = la.splu(Abbd[i,i].tocsc(), permc_spec="NATURAL")
-#         P = sp.csc_matrix((np.ones(Nblock[i]), (lu.perm_r, np.arange(Nblock[i])))).transpose().tocsc()
-#         Lbbd[i,i] = P @ lu.L
-#         Ubbd[i,i] = lu.U
-#         Lbbd[n-1,i] = la.spsolve(Ubbd[i,i].transpose().tocsc(),
-#                                 Abbd[n-1,i].transpose().tocsc()
-#                                ).transpose()
-#         Ubbd[i,n-1] = la.spsolve(Lbbd[i,i], Abbd[i,n-1].tocsc())
-
-#     B = Abbd[n-1,n-1].copy().tocsc()
-#     for i in range(m):
-#         B -= Lbbd[n-1,i] @ Ubbd[i,n-1]
-
-#     lu = la.splu(B, permc_spec="NATURAL")
-#     Pnn = sp.csc_matrix((np.ones(Nblock[n-1]), (lu.perm_r, np.arange(Nblock[n-1])))).transpose().tocsc()
-#     Lbbd[n-1,n-1] = Pnn @ lu.L
-#     Ubbd[n-1,n-1] = lu.U
-
-#     return (Lbbd, Ubbd)
-
-# def bbd_schur_solve(L, U, b):
-
-#     n = int(L.block_dim)
-#     y = {}
-#     c = b[n-1].copy()
-
-#     for i in range(n-1):
-#         y[i] = la.spsolve(L[i,i], b[i])
-#         c -= L[n-1,i] @ y[i]
-
-#     y[n-1] = la.spsolve(L[n-1,n-1], c)
-#     x = block_vector(L.block_sizes)
-#     x[n-1] = la.spsolve(U[n-1,n-1], y[n-1])
-
-#     for i in range(n-1):
-#         x[i] = la.spsolve(U[i,i], y[i] - U[i,n-1] @ x[n-1])
-
-#     return x
-
 
 def admittance_to_BBD(A, num_parts=4):
 
@@ -239,3 +180,16 @@ def admittance_to_BBD(A, num_parts=4):
     BBD.print_summary()
         
     return (BBD,index_order)
+
+
+def form_bbd(ini, nparts):
+
+    print("Forming BBD...")
+
+    A = ini.Init_net_G0
+    BBD,index_order = admittance_to_BBD(A, num_parts=nparts)
+    inv_order = np.empty(len(index_order), dtype=int)
+    for (k,x) in enumerate(index_order):
+        inv_order[x] = k
+
+    return (BBD, index_order, inv_order)

@@ -17,7 +17,9 @@ from functools import reduce
 import pickle
 import pandas as pd
 from lib_numba import *
-        
+
+from partitionutil import form_bbd
+from serial_bbd_matrix import schur_bbd_lu
 
 alpha = np.exp(1j*2*np.pi/3)
 Ainv = np.asarray([[1,1,1],[1,alpha*alpha,alpha],[1,alpha,alpha*alpha]])/3.0
@@ -480,6 +482,14 @@ class PFData():
             return
 
 class DyData():
+
+    # Maps string governor model names to integers
+    gov_model_map = {
+        'GAST':0,
+        'HYGOV':1,
+        'TGOV1':2,
+    }
+
     def __init__(self):
         ## types
         self.gen_type = np.asarray([])
@@ -841,7 +851,8 @@ class DyData():
         # gov
         gov_data = dyn_data.sheet_by_index(2)
         self.gov_n = gov_data.ncols - 1
-        self.gov_type = [""]*self.gov_n
+        # self.gov_type = [""]*self.gov_n
+        self.gov_type = np.empty(self.gov_n, dtype=int)
         for i in range(self.gov_n):
             flag = 0
             typei = str(gov_data.cell_value(2, i + 1))
@@ -856,7 +867,7 @@ class DyData():
                 idx1 = np.where(pfd.gen_bus == self.gov_tgov1_bus[-1])[0]
                 idx2 = np.where(pfd.gen_id[idx1] == tempid)[0][0]
                 self.gov_tgov1_idx = np.append(self.gov_tgov1_idx, int(idx1[idx2]))
-                self.gov_type[int(idx1[idx2])] = typei
+                self.gov_type[int(idx1[idx2])] = DyData.gov_model_map[typei]
                 self.gov_tgov1_R = np.append(self.gov_tgov1_R, float(gov_data.cell_value(3, i + 1)))
                 self.gov_tgov1_T1 = np.append(self.gov_tgov1_T1, float(gov_data.cell_value(4, i + 1)))
                 self.gov_tgov1_Vmax = np.append(self.gov_tgov1_Vmax, float(gov_data.cell_value(5, i + 1)))
@@ -876,7 +887,7 @@ class DyData():
                 idx1 = np.where(pfd.gen_bus == self.gov_hygov_bus[-1])[0]
                 idx2 = np.where(pfd.gen_id[idx1] == tempid)[0][0]
                 self.gov_hygov_idx = np.append(self.gov_hygov_idx, int(idx1[idx2]))
-                self.gov_type[int(idx1[idx2])] = typei
+                self.gov_type[int(idx1[idx2])] = DyData.gov_model_map[typei]
                 self.gov_hygov_R = np.append(self.gov_hygov_R, float(gov_data.cell_value(3, i + 1)))
                 self.gov_hygov_r = np.append(self.gov_hygov_r, float(gov_data.cell_value(4, i + 1)))
                 self.gov_hygov_Tr = np.append(self.gov_hygov_Tr, float(gov_data.cell_value(5, i + 1)))
@@ -902,7 +913,7 @@ class DyData():
                 idx1 = np.where(pfd.gen_bus == self.gov_gast_bus[-1])[0]
                 idx2 = np.where(pfd.gen_id[idx1] == tempid)[0][0]
                 self.gov_gast_idx = np.append(self.gov_gast_idx, int(idx1[idx2]))
-                self.gov_type[int(idx1[idx2])] = typei
+                self.gov_type[int(idx1[idx2])] = DyData.gov_model_map[typei]
                 self.gov_gast_R = np.append(self.gov_gast_R, float(gov_data.cell_value(3, i + 1)))
                 self.gov_gast_T1 = np.append(self.gov_gast_T1, float(gov_data.cell_value(4, i + 1)))
                 self.gov_gast_T2 = np.append(self.gov_gast_T2, float(gov_data.cell_value(5, i + 1)))
@@ -1222,11 +1233,11 @@ class EmtSimu():
         self.Vsol = np.zeros(3*nbus)
         self.Vsol_1 = np.zeros(3*nbus)
 
-        self.fft_vabc = []
-        self.fft_T = 1
-        self.fft_N = 0
-        self.fft_vma = {}
-        self.fft_vpn0 = {}
+        # self.fft_vabc = []
+        # self.fft_T = 1
+        # self.fft_N = 0
+        # self.fft_vma = {}
+        # self.fft_vpn0 = {}
 
 
         self.theta = np.zeros(ngen)
@@ -1293,12 +1304,12 @@ class EmtSimu():
         self.v[0] = np.real(ini.Init_net_Vt)
         self.i[0] = np.real(ini.Init_net_It)
 
-        self.fft_vabc.append(np.real(ini.Init_net_Vt))
-        if self.fft_T == 1:
-            self.fft_N = int(1/(pfd.ws/2/np.pi) / self.ts)
+        # self.fft_vabc.append(np.real(ini.Init_net_Vt))
+        # if self.fft_T == 1:
+        #     self.fft_N = int(1/(pfd.ws/2/np.pi) / self.ts)
 
-        self.fft_vma[0] = np.concatenate((abs(ini.Init_net_Vt),np.angle(ini.Init_net_Vt)))
-        self.fft_vpn0[0] = np.concatenate((abs(ini.Init_net_Vt[0:nbus]), np.zeros(2*nbus), np.angle(ini.Init_net_Vt)[0:nbus], np.zeros(2*nbus)))
+        # self.fft_vma[0] = np.concatenate((abs(ini.Init_net_Vt),np.angle(ini.Init_net_Vt)))
+        # self.fft_vpn0[0] = np.concatenate((abs(ini.Init_net_Vt[0:nbus]), np.zeros(2*nbus), np.angle(ini.Init_net_Vt)[0:nbus], np.zeros(2*nbus)))
 
         self.Vsol = np.real(ini.Init_net_Vt)
         self.Vsol_1 = np.real(ini.Init_net_Vt)
@@ -1504,6 +1515,10 @@ class EmtSimu():
             self.Vsol = ini.Init_net_G0_inv * self.I_RHS
         elif ini.admittance_mode == 'lu':
             self.Vsol = ini.Init_net_G0_lu.solve(self.I_RHS)
+        elif ini.admittance_mode == 'bbd':
+            tmpIRHS = self.I_RHS[ini.index_order]
+            tmpVsol = ini.Init_net_G0_bbd_lu.schur_solve(tmpIRHS)
+            self.Vsol = tmpVsol[ini.inv_order]
         else:
             raise ValueError('Unrecognized mode: {}'.format(ini.admittance_mode))
         return
@@ -1780,117 +1795,129 @@ class EmtSimu():
     def BusMea(self, pfd, dyd, tn):
         nbus = len(pfd.bus_num)
 
-        # FFT
+        # # FFT
 
-        if len(self.fft_vabc) == self.fft_N:
-            data = np.array(self.fft_vabc)
-            fft_res = np.fft.rfft(data, self.fft_N, 0)
-            vm = np.zeros(3*nbus)
-            va = np.zeros(3*nbus)
-            for i in range(3*nbus):
-                vm[i] = abs(fft_res[1][i]) * 2 / self.fft_N
-                va[i] = np.angle(fft_res[1][i])
+        # if len(self.fft_vabc) == self.fft_N:
+        #     data = np.array(self.fft_vabc)
+        #     fft_res = np.fft.rfft(data, self.fft_N, 0)
+        #     vm = np.zeros(3*nbus)
+        #     va = np.zeros(3*nbus)
+        #     for i in range(3*nbus):
+        #         vm[i] = abs(fft_res[1][i]) * 2 / self.fft_N
+        #         va[i] = np.angle(fft_res[1][i])
 
-            vma = np.concatenate((vm, va))
+        #     vma = np.concatenate((vm, va))
 
-            vpn0 = np.zeros(nbus*6)
-            for i in range(nbus):
-                vabc_phasor = np.asarray([vma[i]*np.exp(1j*vma[i+3*nbus]), vma[i+nbus]*np.exp(1j*vma[i+4*nbus]), vma[i+2*nbus]*np.exp(1j*vma[i+5*nbus])])
-                vpn0i = np.dot(Ainv, vabc_phasor)
-                vpn0[i] = abs(vpn0i[2])
-                vpn0[i+3*nbus] = np.angle(vpn0i[2])
-                vpn0[i+nbus] = abs(vpn0i[1])
-                vpn0[i + 4 * nbus] = np.angle(vpn0i[1])
-                vpn0[i+2*nbus] = abs(vpn0i[0])
-                vpn0[i + 5 * nbus] = np.angle(vpn0i[0])
+        #     vpn0 = np.zeros(nbus*6)
+        #     for i in range(nbus):
+        #         vabc_phasor = np.asarray([vma[i]*np.exp(1j*vma[i+3*nbus]), vma[i+nbus]*np.exp(1j*vma[i+4*nbus]), vma[i+2*nbus]*np.exp(1j*vma[i+5*nbus])])
+        #         vpn0i = np.dot(Ainv, vabc_phasor)
+        #         vpn0[i] = abs(vpn0i[2])
+        #         vpn0[i+3*nbus] = np.angle(vpn0i[2])
+        #         vpn0[i+nbus] = abs(vpn0i[1])
+        #         vpn0[i + 4 * nbus] = np.angle(vpn0i[1])
+        #         vpn0[i+2*nbus] = abs(vpn0i[0])
+        #         vpn0[i + 5 * nbus] = np.angle(vpn0i[0])
 
-            ## save a trace
-            # self.fft_vma[len(self.fft_vma)] = vma
-            # self.fft_vpn0[len(self.fft_vpn0)] = vpn0
+        #     ## save a trace
+        #     # self.fft_vma[len(self.fft_vma)] = vma
+        #     # self.fft_vpn0[len(self.fft_vpn0)] = vpn0
 
-            ## save the latest state only
-            self.fft_vma = vma
-            self.fft_vpn0 = vpn0
+        #     ## save the latest state only
+        #     self.fft_vma = vma
+        #     self.fft_vpn0 = vpn0
 
-        else:
-            ## save a trace
-            # self.fft_vma[len(self.fft_vma)] = self.fft_vma[len(self.fft_vma)-1]
-            # self.fft_vpn0[len(self.fft_vpn0)] = self.fft_vpn0[len(self.fft_vpn0)-1]
+        # else:
+        #     ## save a trace
+        #     # self.fft_vma[len(self.fft_vma)] = self.fft_vma[len(self.fft_vma)-1]
+        #     # self.fft_vpn0[len(self.fft_vpn0)] = self.fft_vpn0[len(self.fft_vpn0)-1]
 
-            ## save the latest state only
-            self.fft_vma = np.asarray(self.fft_vma)
-            self.fft_vpn0 = np.asarray(self.fft_vpn0)
+        #     ## save the latest state only
+        #     self.fft_vma = np.asarray(self.fft_vma)
+        #     self.fft_vpn0 = np.asarray(self.fft_vpn0)
 
-        # bus volt mag measurement
+        # # bus volt mag measurement
+        # x_bus_nx = np.zeros(nbus * dyd.bus_odr)
+        # for i in range(nbus):
+        #     ze_1 = self.x_bus_pv_1[i * dyd.bus_odr + 0]
+        #     de_1 = self.x_bus_pv_1[i * dyd.bus_odr + 1]
+        #     we_1 = self.x_bus_pv_1[i * dyd.bus_odr + 2]
+
+        #     vt_1 = self.x_bus_pv_1[i * dyd.bus_odr + 3]
+        #     vtm_1 = self.x_bus_pv_1[i * dyd.bus_odr + 4]
+        #     dvtm_1 = self.x_bus_pv_1[i * dyd.bus_odr + 5]
+
+        #     va = self.Vsol[i]
+        #     vb = self.Vsol[i + nbus]
+        #     vc = self.Vsol[i + 2 * nbus]
+
+        #     # bus voltage magnitude
+        #     nx_vt = np.sqrt((va * va + vb * vb + vc * vc) * 2 / 3)
+        #     x_bus_nx[i * dyd.bus_odr + 3] = nx_vt
+
+        #     nx_vtm = vtm_1 + (nx_vt - vtm_1) / dyd.vm_te[i] * self.ts
+        #     x_bus_nx[i * dyd.bus_odr + 4] = nx_vtm
+
+        #     nx_dvtm = (nx_vtm - vtm_1) / self.ts
+        #     x_bus_nx[i * dyd.bus_odr + 5] = nx_dvtm
+
+
+
+        #     # bus freq and angle by PLL
+        #     # theta
+        #     theta = de_1 + self.ts * we_1 * pfd.ws
+        #     Pk = np.array([[np.cos(theta),
+        #                     np.cos(theta - np.pi * 2.0 / 3.0),
+        #                     np.cos(theta + np.pi * 2.0 / 3.0)
+        #                     ],
+        #                    [-np.sin(theta),
+        #                     -np.sin(theta - np.pi * 2.0 / 3.0),
+        #                     -np.sin(theta + np.pi * 2.0 / 3.0)
+        #                     ],
+        #                    [0.5, 0.5, 0.5]
+        #                    ])
+
+        #     # vd = 2.0 / 3.0 * np.sum(Pk[0, :] * [va,vb,vc])
+        #     vq = 2.0 / 3.0 * np.sum(Pk[1, :] * [va, vb, vc])
+
+
+        #     nx_ze = ze_1 + dyd.pll_ke[i] / dyd.pll_te[i] * vq * self.ts
+        #     nx_de = de_1 + we_1 * pfd.ws * self.ts
+        #     if tn * self.ts < self.t_release_f:
+        #         nx_we = 1.0
+        #         # x_bus_nx[i * dyd.bus_odr + 3] = vt_1
+        #     else:
+        #         nx_we = 1 + dyd.pll_ke[i] * vq + ze_1
+
+
+
+        #     x_bus_nx[i * dyd.bus_odr + 0] = nx_ze
+        #     x_bus_nx[i * dyd.bus_odr + 1] = nx_de
+        #     x_bus_nx[i * dyd.bus_odr + 2] = nx_we
+        #     # x_bus_nx[i * dyd.bus_odr + 3] = nx_vt
+
+        # ## End if
+
         x_bus_nx = np.zeros(nbus * dyd.bus_odr)
-        for i in range(nbus):
-            ze_1 = self.x_bus_pv_1[i * dyd.bus_odr + 0]
-            de_1 = self.x_bus_pv_1[i * dyd.bus_odr + 1]
-            we_1 = self.x_bus_pv_1[i * dyd.bus_odr + 2]
 
-            vt_1 = self.x_bus_pv_1[i * dyd.bus_odr + 3]
-            vtm_1 = self.x_bus_pv_1[i * dyd.bus_odr + 4]
-            dvtm_1 = self.x_bus_pv_1[i * dyd.bus_odr + 5]
+        numba_BusMea(
+            x_bus_nx,
+            self.Vsol,
+            self.x_bus_pv_1,
+            nbus,
+            self.ts,
+            self.t_release_f,
+            pfd.ws,
+            dyd.bus_odr,
+            dyd.vm_te,
+            dyd.pll_ke,
+            dyd.pll_te,
+            tn
+        )
 
-            va = self.Vsol[i]
-            vb = self.Vsol[i + nbus]
-            vc = self.Vsol[i + 2 * nbus]
-
-            # bus voltage magnitude
-            nx_vt = np.sqrt((va * va + vb * vb + vc * vc) * 2 / 3)
-            x_bus_nx[i * dyd.bus_odr + 3] = nx_vt
-
-            nx_vtm = vtm_1 + (nx_vt - vtm_1) / dyd.vm_te[i] * self.ts
-            x_bus_nx[i * dyd.bus_odr + 4] = nx_vtm
-
-            nx_dvtm = (nx_vtm - vtm_1) / self.ts
-            x_bus_nx[i * dyd.bus_odr + 5] = nx_dvtm
-
-
-
-            # bus freq and angle by PLL
-            # theta
-            theta = de_1 + self.ts * we_1 * pfd.ws
-            Pk = np.array([[np.cos(theta),
-                            np.cos(theta - np.pi * 2.0 / 3.0),
-                            np.cos(theta + np.pi * 2.0 / 3.0)
-                            ],
-                           [-np.sin(theta),
-                            -np.sin(theta - np.pi * 2.0 / 3.0),
-                            -np.sin(theta + np.pi * 2.0 / 3.0)
-                            ],
-                           [0.5, 0.5, 0.5]
-                           ])
-
-            # vd = 2.0 / 3.0 * np.sum(Pk[0, :] * [va,vb,vc])
-            vq = 2.0 / 3.0 * np.sum(Pk[1, :] * [va, vb, vc])
-
-
-            nx_ze = ze_1 + dyd.pll_ke[i] / dyd.pll_te[i] * vq * self.ts
-            nx_de = de_1 + we_1 * pfd.ws * self.ts
-            if tn * self.ts < self.t_release_f:
-                nx_we = 1.0
-                # x_bus_nx[i * dyd.bus_odr + 3] = vt_1
-            else:
-                nx_we = 1 + dyd.pll_ke[i] * vq + ze_1
-
-
-
-            x_bus_nx[i * dyd.bus_odr + 0] = nx_ze
-            x_bus_nx[i * dyd.bus_odr + 1] = nx_de
-            x_bus_nx[i * dyd.bus_odr + 2] = nx_we
-            # x_bus_nx[i * dyd.bus_odr + 3] = nx_vt
-
-            if tn*self.ts < self.t_release_f:
-                # x_bus_nx[i * dyd.bus_odr + 0] = ze_1
-                # x_bus_nx[i * dyd.bus_odr + 1] = de_1 + we_1*self.ts*2*np.pi*60
-                # x_bus_nx[i * dyd.bus_odr + 2] = 1.0
-                # x_bus_nx[i * dyd.bus_odr + 3] = vt_1
-                # x_bus_nx[i * dyd.bus_odr + 4] = vtm_1
-                # x_bus_nx[i * dyd.bus_odr + 5] = dvtm_1
-                pass
         self.x_bus_pv_1 = x_bus_nx
 
+        return
 
 
     def StepChange(self, dyd, ini, tn):
@@ -2239,14 +2266,7 @@ class EmtSimu():
         else:
             pickle.dump([pfd, dyd, ini, self], open(output_res, "wb"))
 
-
-    def parallel_diagnostics(self):
-        # numba_predictX.parallel_diagnostics(level=4)
-        numba_updateIg.parallel_diagnostics(level=4)
-        numba_updateX.parallel_diagnostics(level=4)
-        # numba_updateIhis.parallel_diagnostics(level=4)
         return
-
 
 
 # states class
@@ -3155,7 +3175,7 @@ class Initialize():
                 self.Init_ZL_ang[i] = np.arctan(pfd.load_Mvar[i] / pfd.load_MW[i]) + np.pi
 
 
-    def MergeMacG(self, pfd, dyd, ts, i_gentrip = [], mode='inv'):
+    def MergeMacG(self, pfd, dyd, ts, i_gentrip = [], mode='inv', nparts=4):
         self.Init_net_Gt0 = sp.coo_matrix((self.Init_net_G0_data, (self.Init_net_G0_rows, self.Init_net_G0_cols)),
                                          shape=(self.Init_net_N, self.Init_net_N)
                                          ).tolil()
@@ -3346,11 +3366,13 @@ class Initialize():
 
         if mode == 'inv':
             self.Init_net_G0_inv = la.inv(self.Init_net_G0.tocsc())
-            # self.Init_net_G0_inv = np.linalg.inv(self.Init_net_G0.toarray())
         elif mode == 'lu':
             self.Init_net_G0_lu = la.splu(self.Init_net_G0.tocsc())
         elif mode == 'bbd':
-            pass
+            (BBD, idx_order, inv_order) = form_bbd(self, nparts)
+            self.index_order = idx_order
+            self.inv_order = inv_order
+            self.Init_net_G0_bbd_lu = schur_bbd_lu(BBD)
         else:
             raise ValueError('Unrecognized mode: {}'.format(mode))
         self.admittance_mode = mode

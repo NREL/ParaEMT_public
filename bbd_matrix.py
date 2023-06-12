@@ -56,7 +56,7 @@ class bbd_matrix:
             if len(self.block_sizes) == self.block_dim:
                 self.complete = True
         return
-    
+
     def _check_col_size(self, col, q):
         if col in self.block_sizes.keys():
             err_str = "Dimension of column {} is set at {} but given array has {} columns"
@@ -68,13 +68,13 @@ class bbd_matrix:
             if len(self.block_sizes) == self.block_dim:
                 self.complete = True
         return
-    
+
     def add_diag_block(self, block_mat, idx):
-        
+
         (p,q) = block_mat.shape
         assert p == q, "BBD matrix requires square matrices on the diagonal. Given matrix is ({},{})".format(p,q)
         self._check_row_size(idx, p)
-        
+
         if self.complete:
             self.shape = (self.dimension, self.dimension)
 
@@ -85,33 +85,33 @@ class bbd_matrix:
             self.diag_blocks[idx] = block_mat
 
         self.nnz += block_mat.nnz
-        
+
         return
-    
+
     def add_lower_block(self, block_mat, idx):
         (p,q) = block_mat.shape
         self._check_row_size(self.block_dim - 1, p)
         self._check_col_size(idx, q)
-        
+
         assert idx not in self.lower_blocks.keys(), "BBD matrix already has entry at ({},{})".format(
             self.block_dim - 1, idx)
 
         self.lower_blocks[idx] = block_mat
         self.nnz += block_mat.nnz
-        
+
         return
-    
+
     def add_right_block(self, block_mat, idx):
         (p,q) = block_mat.shape
         self._check_row_size(idx, p)
         self._check_col_size(self.block_dim - 1, q)
-        
+
         assert idx not in self.right_blocks.keys(), "BBD matrix already has entry at ({},{})".format(
             idx, self.block_dim - 1)
-        
+
         self.right_blocks[idx] = block_mat
         self.nnz += block_mat.nnz
-        
+
         return
 
     def add_block(self, block_mat, row, col):
@@ -124,7 +124,7 @@ class bbd_matrix:
         else:
             raise IndexError("BBD matrix cannot contain an entry at ({},{})".format(row, col))
         return
-    
+
     # def _update_block(self, idx, new_block, old_block, blocks):
     #     assert old_block.shape == new_block.shape, "Given block has shape {} but must have shape {}".format(
     #         new_block.shape,
@@ -140,19 +140,19 @@ class bbd_matrix:
     #     old_block = self.diag_blocks[idx]
     #     self._update_block(idx, mat, old_block, self.diag_blocks)
     #     return
-    
+
     # def update_lower_block(self, mat, idx):
     #     assert idx in self.lower_blocks.keys(), "Block at ({},{}) does not exist".format(self.block_dim - 1, idx)
     #     old_block = self.lower_blocks[idx]
     #     self._update_block(idx, mat, old_block, self.lower_blocks)
     #     return
-    
+
     # def update_right_block(self, mat, idx):
     #     assert idx in self.right_blocks.keys(), "Block at ({},{}) does not exist".format(idx, self.block_dim - 1)
     #     old_block = self.right_blocks[idx]
     #     self._update_block(idx, mat, old_block, self.right_blocks)
     #     return
-    
+
     # def update_block(self, mat, row, col):
     #     if row > col:
     #         self.update_lower_block(mat, col)
@@ -170,17 +170,17 @@ class bbd_matrix:
         else:
             block = self.diag_blocks[idx]
         return block
-    
+
     def get_lower_block(self, idx):
         if idx not in self.lower_blocks.keys():
             raise IndexError("Block matrix does not contain an entry at ({},{})".format(self.block_dim - 1, idx))
         return self.lower_blocks[idx]
-    
+
     def get_right_block(self, idx):
         if idx not in self.right_blocks.keys():
             raise IndexError("Block matrix does not contain an entry at ({},{})".format(idx, self.block_dim - 1))
         return self.right_blocks[idx]
-    
+
     def get_block(self, row, col, suppress_error=False):
         if row == col:
             block = self.get_diag_block(row)
@@ -194,7 +194,7 @@ class bbd_matrix:
             else:
                 raise IndexError("BBD matrix does not contain an entry at ({},{})".format(row,col))
         return block
-    
+
     def to_dense(self, order=None, out=None):
         return self.to_sparse().todense(order=order, out=out)
 
@@ -292,14 +292,15 @@ class block_vector:
 
         self.nrows = len(block_sizes)
         self.sizes = block_sizes
-        
+
         self.indices = {}
         dim = 0
         for i in range(self.nrows):
             self.indices[i] = dim
             dim += self.sizes[i]
         self.shape = (dim,)
-        
+        self.size = dim
+
         if x_dense is not None:
             assert x_dense.shape == self.shape, "Given vector has shape {} but expected shape {}".format(
                 x_dense.shape,
@@ -314,23 +315,23 @@ class block_vector:
             self.shape = (dim,)
 
         return
-    
+
     def __getitem__(self, key):
         if type(key) != int:
             raise TypeError("Index must be an int not {}".format(type(key)))
         return self.get_block(key)
-    
+
     def __setitem__(self, key, item):
         if type(key) != int:
             raise TypeError("Index must be an int not {}".format(type(key)))
         self.set_block(key, item)
         return
-    
+
     def _slice_bounds(self, row):
         start_idx = self.indices[row]
         end_idx = start_idx + self.sizes[row]
         return (start_idx, end_idx)
-    
+
     def set_block(self, row, block_vect):
         dim = self.sizes[row]
         assert block_vect.shape[0] == dim, "Given vector has length {} but must have length {} for row {}".format(
@@ -341,11 +342,11 @@ class block_vector:
         (start_idx, end_idx) = self._slice_bounds(row)
         self.vector[start_idx:end_idx] = block_vect
         return
-    
+
     def get_block(self, row):
         (start_idx, end_idx) = self._slice_bounds(row)
         return self.vector[start_idx:end_idx]
-    
+
     def to_dense(self, out=None):
         if out is None:
             return self.vector
