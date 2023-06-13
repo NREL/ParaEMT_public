@@ -1,7 +1,7 @@
 <h1> ParaEMT </h1>
 NREL's EMT simulator: An Open Source, Parallelizable, and HPC-Compatible Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator
 
-
+<h1> Citing </h1>
 If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT
 M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, J. Tan, “Decomposing and parallelizing network solution for fast-Simulating EMT dynamics of large-scale IBR-rich power grids leveraging high-performance computing,” 
 
