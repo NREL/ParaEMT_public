@@ -29,8 +29,8 @@ https://doelps.org/arntrn
 * ParaEMT has been developed under a LDRD project titled “Large-Scale Electro-magnetic Transient (EMT) Capability for Evaluating 100% Inverter-Based Systems” at the U.S. Department of Energy's National Renewable Energy Laboratory.
 * NREL Software Record of Invention:  Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds “Parallelizable Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator”.
 
-
-
+<h1> Contact </h1>
+For any questions, feedback, or inquiries, please contact our team at ParaEMT@nrel.gov
 
 
 
