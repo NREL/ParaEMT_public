@@ -40,6 +40,8 @@ https://doelps.org/arntrn
 <h1> Contact </h1>
 For any questions, feedback, or inquiries, please contact our team at ParaEMT@nrel.gov.
 
+* Report bugs or issues by submitting a [GitHub issue]()
+
 <h1> Contributation </h1>
 If you're passionate about improving the software, consider contributing to the project…
 
