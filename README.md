@@ -11,10 +11,18 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 * Parallel computation of 
 * Compatible with HPC
 
+<h1> Version Advisory </h1>
+* Work with Pyhton v3.7+.
+
 <h1> Citing </h1>
 If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT:
 
 M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, J. Tan, “Decomposing and parallelizing network solution for fast-Simulating EMT dynamics of large-scale IBR-rich power grids leveraging high-performance computing,” 
+
+<h1> Getting Started with ParaEMT </h1>
+To get started with the EMT Simulation software, follow these steps:
+
+* Installation:
 
 <h1> Developer </h1>
 This code was developed under the NREL project titled "Intelligent Phasor-EMT Partitioning (I-PEP) for Accelerated Large-scale IBR Integration Studies (Award # DE-EE00038457)".
