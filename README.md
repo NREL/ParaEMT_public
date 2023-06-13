@@ -1,4 +1,4 @@
-# ParaEMT
+<h1> ParaEMT </h1>
 NREL's EMT simulator: An Open Source, Parallelizable, and HPC-Compatible Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator
 
 If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT
@@ -9,4 +9,6 @@ NREL Software Record of Invention :  “Parallelizable Large-Scale Power System 
 Authors: Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds.
 
 https://doelps.org/arntrn
+
+
 
