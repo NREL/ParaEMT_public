@@ -1,5 +1,7 @@
 <h1> ParaEMT </h1>
-NREL's EMT simulator: An Open Source, Parallelizable, and HPC-Compatible Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator
+<h2> NREL's EMT simulator: An Open Source, Parallelizable, and HPC-Compatible Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator <h2>
+
+Welcome to the ParaEMT simulation package! This open-source tool aims to provide a powerful and flexible platform for simulating electromagnetic transients (EMT) of inverter-based resource (IBR)-dominated power systems. The purpose of making it open source is to foster a community of EMT simulation and assist in exploring new EMT algorithms and applying advanced computational techniques to EMT simulation.
 
 <h1> Citing </h1>
 If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT
