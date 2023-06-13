@@ -30,7 +30,7 @@ https://doelps.org/arntrn
 * NREL Software Record of Invention:  Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds “Parallelizable Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator”.
 
 <h1> Contact </h1>
-For any questions, feedback, or inquiries, please contact our team at [ParaEMT@nrel.gov](url)
+For any questions, feedback, or inquiries, please contact our team at ParaEMT@nrel.gov.
 
 
 
