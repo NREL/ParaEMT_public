@@ -6,11 +6,14 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 <h1> Feature </h1>
 
 * EMT modeling
+* EMT Network equation: nodal formulation based on Trapezoidal-rule method
 * EMT network parallel solver: BBD
+* Parallel computation of 
 * Compatible with HPC
 
 <h1> Citing </h1>
-If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT
+If you use ParaEMT for research or consulting, please cite the following paper in your publication that uses ParaEMT:
+
 M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, J. Tan, “Decomposing and parallelizing network solution for fast-Simulating EMT dynamics of large-scale IBR-rich power grids leveraging high-performance computing,” 
 
 <h1> Developer </h1>
@@ -19,6 +22,15 @@ NREL Software Record of Invention :  “Parallelizable Large-Scale Power System 
 Authors: Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds.
 
 https://doelps.org/arntrn
+
+<h1> License </h1>
+
+* ParaEMT is released under a BSD.  
+* ParaEMT has been developed under a LDRD project titled “Large-Scale Electro-magnetic Transient (EMT) Capability for Evaluating 100% Inverter-Based Systems” at the U.S. Department of Energy's National Renewable Energy Laboratory.
+* NREL Software Record of Invention:  Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds “Parallelizable Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator”.
+
+
+
 
 
 
