@@ -8,7 +8,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 * EMT modeling
 * EMT Network equation: nodal formulation based on Trapezoidal-rule method
 * EMT network parallel solver: BBD
-* Parallel computation of 
+* Parallel computation of updateing device states and network historical current
 * Compatible with HPC
 
 <h1> Version Advisory </h1>
