@@ -27,14 +27,14 @@ To get started with the EMT Simulation software, follow these steps:
 
 <h1> Developer </h1>
 
-* This code was developed under the NREL project titled "Intelligent Phasor-EMT Partitioning (I-PEP) for Accelerated Large-scale IBR Integration Studies (Award # DE-EE00038457)".
+* ParaEMT has been developed under a Laboratory Directed Research and Development (LDRD) project titled “Large-Scale Electro-magnetic Transient (EMT) Capability for Evaluating 100% Inverter-Based Systems” at the U.S. Department of Energy's National Renewable Energy Laboratory.
+* ParaEMT has also been developed under the NREL project titled "Intelligent Phasor-EMT Partitioning (I-PEP) for Accelerated Large-scale IBR Integration Studies (Award # DE-EE00038457)".
 * NREL Software Record of Invention :  “Parallelizable Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator”. Authors: Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds.
 https://doelps.org/arntrn
 
 <h1> License </h1>
 
 * ParaEMT is released under a BSD.  
-* ParaEMT has been developed under a LDRD project titled “Large-Scale Electro-magnetic Transient (EMT) Capability for Evaluating 100% Inverter-Based Systems” at the U.S. Department of Energy's National Renewable Energy Laboratory.
 * NREL Software Record of Invention:  Bin Wang, Jonathan Maack, Deepthi Vaidhynathan, Jin Tan, Matthew Reynolds “Parallelizable Large-Scale Power System Electro-Magnetic Transient (EMT) Simulator”.
 
 <h1> Contact </h1>
