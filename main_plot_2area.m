@@ -1,121 +1,28 @@
 clc;clear;
+close all
 
 %% read simulation results
-dataT = readtable('paraemt_x.csv');
-% dataTibr = readtable('emt_xibr.csv');
-% dataTibr_epri = readtable('emt_xibr_epri.csv');
-% dataTld = readtable('paraemt_x_load.csv');
-dataTbus = readtable('paraemt_bus.csv');
+dataT = readtable('emt_x.csv');
+dataTibr = readtable('emt_xibr.csv');
+dataTld = readtable('emt_x_load.csv');
+dataTbus = readtable('emt_x_bus.csv');
 
-
-%% parce the data
-systemN = 6;
 tend = 2;
-
 dr = 30;
 ts = dr*50e-6;
 
-xshift = 0;
-yshift = -200;
 
-switch systemN
-    case 5
-        % 240-bus
-        bus_n = 243;
-        gen_genrou_odr = 18;
-        gen_genrou_n = 111;
-        exc_sexs_odr = 2;
-        exc_sexs_n = 111;
-        gov_tgov1_odr = 3;
-        gov_tgov1_n = 37;
-        gov_hygov_odr = 5;
-        gov_hygov_n = 25;
-        gov_gast_odr = 4;
-        gov_gast_n = 49;
-        pss_ieeest_odr = 10;
-        pss_ieeest_n = 10;
-        
-        ibr_n = 91;
-        regca_odr = 8;
-        reecb_odr = 12;
-        repca_odr = 21;
-        pll_odr = 3;
-        ibr_odr = regca_odr + reecb_odr + repca_odr + pll_odr;
-        mvabase_T = readtable('emt_gen_mvabase.csv');
-        mvabase = table2array(mvabase_T(2:end,2));
-        
-        dataTibr = readtable('emt_xibr.csv');
-        
-    case 1
-        % 2-gen
-        bus_n = 4;
-        gen_genrou_odr = 18;
-        gen_genrou_n = 2;
-        exc_sexs_odr = 2;
-        exc_sexs_n = 2;
-        gov_tgov1_odr = 3;
-        gov_tgov1_n = 0;
-        gov_hygov_odr = 5;
-        gov_hygov_n = 2;
-        gov_gast_odr = 4;
-        gov_gast_n = 0;
-        pss_ieeest_odr = 10;
-        pss_ieeest_n = 0;
-        
-        ibr_n = 0;
-        regca_odr = 8;
-        reecb_odr = 12;
-        repca_odr = 21;
-        pll_odr = 3;
-        ibr_odr = regca_odr + reecb_odr + repca_odr + pll_odr;
-        
-    case 6
-        % 2-area
         bus_n = 11;
         bus_odr = 6;
         load_n = 2;
         load_odr = 4;
         
         gen_genrou_odr = 18;
-        gen_genrou_n = 4;
+        gen_genrou_n = 4;  % original is 4, because 1 is IBR, change it
         exc_sexs_odr = 2;
-        exc_sexs_n = 4;
+        exc_sexs_n = 4;  % original is 4,
         gov_tgov1_odr = 3;
-        gov_tgov1_n = 4;
-        gov_hygov_odr = 5;
-        gov_hygov_n = 0;
-        gov_gast_odr = 4;
-        gov_gast_n = 0;
-        pss_ieeest_odr = 10;
-        pss_ieeest_n = 0;
-        
-        ibr_n = 0;
-        regca_odr = 8;
-        reecb_odr = 12;
-        repca_odr = 21;
-        pll_odr = 3;
-%         ibr_odr = regca_odr + reecb_odr + repca_odr + pll_odr;
-        ibr_odr = 13;
-        
-        
-        emt_idx_bus = [1:11];
-        emt_idx_gen = [1:4];
-        
-%         emt_idx_bus = [1:11]';
-%         emt_idx_gen = [1:3]';
-    case 7
-        % 2-area
-        bus_n = 4;
-        bus_odr = 6;
-        load_n = 2;
-        load_odr = 4;
-        
-        gen_genrou_odr = 18;
-        gen_genrou_n = 2;
-        exc_sexs_odr = 2;
-        exc_sexs_n = 2;
-        gov_tgov1_odr = 3;
-        gov_tgov1_n = 2;
+        gov_tgov1_n = 4;   % original is 4,
         gov_hygov_odr = 5;
         gov_hygov_n = 0;
         gov_gast_odr = 4;
@@ -129,70 +36,65 @@ switch systemN
         repca_odr = 21;
         pll_odr = 3;
         ibr_odr = regca_odr + reecb_odr + repca_odr + pll_odr;
-        
-        emt_idx_bus = [1:4];
-        emt_idx_gen = [1:2];
-end
 
-%
+
 clc;
-t = table2array(dataT(2:end,1))*ts - ts;
+t = table2array(dataT(:,1));
 st = 1;
-mac_dt = table2array(dataT(2:end,st+1:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_w = table2array(dataT(2:end,st+2:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_id = table2array(dataT(2:end,st+3:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_iq = table2array(dataT(2:end,st+4:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_ifd = table2array(dataT(2:end,st+5:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_i1d = table2array(dataT(2:end,st+6:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_i1q = table2array(dataT(2:end,st+7:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_i2q = table2array(dataT(2:end,st+8:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_ed = table2array(dataT(2:end,st+9:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_eq = table2array(dataT(2:end,st+10:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psyd = table2array(dataT(2:end,st+11:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psyq = table2array(dataT(2:end,st+12:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psyfd = table2array(dataT(2:end,st+13:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psy1q = table2array(dataT(2:end,st+14:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psy1d = table2array(dataT(2:end,st+15:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_psy2q = table2array(dataT(2:end,st+16:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_te = table2array(dataT(2:end,st+17:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
-mac_qe = table2array(dataT(2:end,st+18:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_dt = table2array(dataT(:,st+1:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_w = table2array(dataT(:,st+2:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_id = table2array(dataT(:,st+3:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_iq = table2array(dataT(:,st+4:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_ifd = table2array(dataT(:,st+5:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_i1d = table2array(dataT(:,st+6:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_i1q = table2array(dataT(:,st+7:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_i2q = table2array(dataT(:,st+8:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_ed = table2array(dataT(:,st+9:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_eq = table2array(dataT(:,st+10:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psyd = table2array(dataT(:,st+11:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psyq = table2array(dataT(:,st+12:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psyfd = table2array(dataT(:,st+13:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psy1q = table2array(dataT(:,st+14:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psy1d = table2array(dataT(:,st+15:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_psy2q = table2array(dataT(:,st+16:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_te = table2array(dataT(:,st+17:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
+mac_qe = table2array(dataT(:,st+18:gen_genrou_odr:(st+gen_genrou_odr*gen_genrou_n)));
 
 st = 1 + gen_genrou_odr*gen_genrou_n;
-sexs_v1 = table2array(dataT(2:end,st+1:exc_sexs_odr:(st+exc_sexs_odr*exc_sexs_n)));
-sexs_EFD = table2array(dataT(2:end,st+2:exc_sexs_odr:(st+exc_sexs_odr*exc_sexs_n)));
+sexs_v1 = table2array(dataT(:,st+1:exc_sexs_odr:(st+exc_sexs_odr*exc_sexs_n)));
+sexs_EFD = table2array(dataT(:,st+2:exc_sexs_odr:(st+exc_sexs_odr*exc_sexs_n)));
 
 st = 1 + gen_genrou_odr*gen_genrou_n + exc_sexs_odr*exc_sexs_n;
-tgov1_p1 = table2array(dataT(2:end,st+1:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
-tgov1_p2 = table2array(dataT(2:end,st+2:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
-tgov1_pm = table2array(dataT(2:end,st+3:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
+tgov1_p1 = table2array(dataT(:,st+1:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
+tgov1_p2 = table2array(dataT(:,st+2:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
+tgov1_pm = table2array(dataT(:,st+3:gov_tgov1_odr:(st+gov_tgov1_odr*gov_tgov1_n)));
 
 st = 1 + gen_genrou_odr*gen_genrou_n + exc_sexs_odr*exc_sexs_n + gov_tgov1_odr*gov_tgov1_n;
-hygov_xe = table2array(dataT(2:end,st+1:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
-hygov_xc = table2array(dataT(2:end,st+2:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
-hygov_xg = table2array(dataT(2:end,st+3:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
-hygov_xq = table2array(dataT(2:end,st+4:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
-hygov_pm = table2array(dataT(2:end,st+5:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
+hygov_xe = table2array(dataT(:,st+1:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
+hygov_xc = table2array(dataT(:,st+2:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
+hygov_xg = table2array(dataT(:,st+3:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
+hygov_xq = table2array(dataT(:,st+4:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
+hygov_pm = table2array(dataT(:,st+5:gov_hygov_odr:(st+gov_hygov_odr*gov_hygov_n)));
 
 st = 1 + gen_genrou_odr*gen_genrou_n + exc_sexs_odr*exc_sexs_n + gov_tgov1_odr*gov_tgov1_n +gov_hygov_odr*gov_hygov_n;
-gast_p1 = table2array(dataT(2:end,st+1:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
-gast_p2 = table2array(dataT(2:end,st+2:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
-gast_p3 = table2array(dataT(2:end,st+3:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
-gast_pm = table2array(dataT(2:end,st+4:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
+gast_p1 = table2array(dataT(:,st+1:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
+gast_p2 = table2array(dataT(:,st+2:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
+gast_p3 = table2array(dataT(:,st+3:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
+gast_pm = table2array(dataT(:,st+4:gov_gast_odr:(st+gov_gast_odr*gov_gast_n)));
 
 st = 1 + gen_genrou_odr*gen_genrou_n + exc_sexs_odr*exc_sexs_n + gov_tgov1_odr*gov_tgov1_n +gov_hygov_odr*gov_hygov_n +gov_gast_odr*gov_gast_n;
-ieeest_y1 = table2array(dataT(2:end,st+1:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y2 = table2array(dataT(2:end,st+2:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y3 = table2array(dataT(2:end,st+3:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y4 = table2array(dataT(2:end,st+4:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y5 = table2array(dataT(2:end,st+5:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y6 = table2array(dataT(2:end,st+6:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_y7 = table2array(dataT(2:end,st+7:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_x1 = table2array(dataT(2:end,st+8:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_x2 = table2array(dataT(2:end,st+9:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
-ieeest_vs = table2array(dataT(2:end,st+10:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y1 = table2array(dataT(:,st+1:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y2 = table2array(dataT(:,st+2:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y3 = table2array(dataT(:,st+3:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y4 = table2array(dataT(:,st+4:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y5 = table2array(dataT(:,st+5:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y6 = table2array(dataT(:,st+6:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_y7 = table2array(dataT(:,st+7:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_x1 = table2array(dataT(:,st+8:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_x2 = table2array(dataT(:,st+9:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
+ieeest_vs = table2array(dataT(:,st+10:pss_ieeest_odr:(st+pss_ieeest_odr*pss_ieeest_n)));
 
 
-if systemN==5
     st = 0;
     regca_s0 = table2array(dataTibr(:,st+1:ibr_odr:(st+ibr_odr*ibr_n)));
     regca_s1 = table2array(dataTibr(:,st+2:ibr_odr:(st+ibr_odr*ibr_n)));
@@ -237,25 +139,6 @@ if systemN==5
     repca_Vf = table2array(dataTibr(:,st+39:ibr_odr:(st+ibr_odr*ibr_n)));
     repca_Pe = table2array(dataTibr(:,st+40:ibr_odr:(st+ibr_odr*ibr_n)));
     repca_Qe = table2array(dataTibr(:,st+41:ibr_odr:(st+ibr_odr*ibr_n)));
-end
-
-% if systemN==6
-%     st = 0;
-%     ibr_epri_Ea = table2array(dataTibr_epri(:,st+1:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Eb = table2array(dataTibr_epri(:,st+2:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Ec = table2array(dataTibr_epri(:,st+3:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Idref = table2array(dataTibr_epri(:,st+4:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Id = table2array(dataTibr_epri(:,st+5:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Iqref = table2array(dataTibr_epri(:,st+6:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Iq = table2array(dataTibr_epri(:,st+7:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Vd = table2array(dataTibr_epri(:,st+8:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Vq = table2array(dataTibr_epri(:,st+9:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_fpll = table2array(dataTibr_epri(:,st+10:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Pe = table2array(dataTibr_epri(:,st+11:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Qe = table2array(dataTibr_epri(:,st+12:ibr_odr:(st+ibr_odr*ibr_n)));
-%     ibr_epri_Vpoi = table2array(dataTibr_epri(:,st+13:ibr_odr:(st+ibr_odr*ibr_n)));
-%     
-% end
 
 
 bus_pll_ze = table2array(dataTbus(2:end,1:bus_odr:(bus_odr*bus_n)));
@@ -272,12 +155,7 @@ bus_dvtm = table2array(dataTbus(2:end,6:bus_odr:(bus_odr*bus_n)));
 close all;
 flag_sg = 1;
 dev_flag = 0;
-
-
 flag_ibr = 1 - flag_sg;
-
-
-
 if flag_sg == 1
     figure(1)
     clf;hold on;
@@ -460,7 +338,6 @@ if flag_ibr == 1
 
 end
 
-
 figure(4)
 clf;hold on;
 set(gcf, 'Position',  [50+xshift, 450+yshift, 400, 200])
@@ -474,7 +351,6 @@ end
 % ylim([0.88 1.18])
 % ylim([0.96 1.04])
 xlim([0 tend])
-
 
 % figure(101)
 % clf;hold on;
@@ -496,25 +372,3 @@ xlim([0 tend])
 % title('QL')
 % xlim([0 tend])
 % % ylim([-1000 3000])
-
-% %% droop calc
-% clc
-% 
-% kk = 1600;
-% dp = mac_te - ones(length(t),1)*mac_te(1,:);
-% dp = mean(dp(kk:end,:))';
-% df = (mac_w - ones(length(t),1)*mac_w(1,:))/2/pi/60;
-% df = df(end,:)';
-% 
-% droopgain = -df./dp;
-% 
-% idx = find(abs(droopgain)>0.5);
-% % figure(101)
-% % clf;hold on;
-% % plot(t,mac_te(:,idx(1)))
-% % box on;
-% % title('Te')
-% 
-% droopgain(idx)
-% idx-1
-% % dp(idx)
