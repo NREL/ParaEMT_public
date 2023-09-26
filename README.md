@@ -18,7 +18,8 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 * Fully open source and transparent: Allows unrestricted access to the underlying source code and encourages active engagement and contributions from the community
 
 <h1> System component library </h1>
-* ParaEMT is till under continuous development, and currently supports the following models
+
+* ParaEMT is till under continuous development, and currently supports the following models:
 
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/41ff1810-f951-4a28-9a48-3cfb455a627b" width="470">
 
@@ -35,7 +36,8 @@ M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. R
 ```
 
 <h1> Getting Started with ParaEMT </h1>
-To conduct EMT simulations using PataEMT, follow these steps:
+
+* To conduct EMT simulations using PataEMT, follow these steps:
 
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/72beb4a9-4aac-475b-a0ab-980435a339b0" width="800">
 
