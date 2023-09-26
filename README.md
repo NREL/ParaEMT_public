@@ -41,7 +41,7 @@ To get started with the EMT Simulator PataEMT, follow these steps:
 
 * Main Functions and Subfunction Libraries 
 
-  The first function, main_step0_CreateLargeCases, serves the dual purpose of executing and storing the power flow solution and, optionally, generating synthetic large-scale systems. The second function, main_step1_sim, is responsible for initializing and simulating the system dynamics. The third function, main_step2_save, saves the simulation results
+  The first function, main_step0_CreateLargeCases, serves the dual purpose of executing and storing the power flow solution and, optionally, generating synthetic large-scale systems. The second function, main_step1_sim, is responsible for initializing and simulating the system dynamics. The third function, main_step2_save, saves the simulation results.
 
 * Simulation Initialization
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/a27215f5-9778-4ef9-b603-735a245e16ee" width="350">
