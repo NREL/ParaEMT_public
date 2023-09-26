@@ -19,7 +19,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 <h1> System component library </h1>
 
-* ParaEMT is till under continuous development, and currently supports the following models:
+* ParaEMT is under continuous development, and currently supports the following models:
 
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/41ff1810-f951-4a28-9a48-3cfb455a627b" width="470">
 
