@@ -67,6 +67,6 @@ https://doelps.org/arntrn
 * Report bugs or issues by submitting a [GitHub issue](https://github.com/NREL/ParaEMT_public/issues)
 
 <h1> Contribution </h1>
-If you're passionate about improving ParaEMT, consider contributing to the future developing of ParaEMT, you are also welcome to contact us. 
+If you're passionate about improving ParaEMT, consider contributing to the future development of ParaEMT, you are also welcome to contact us. 
 
 
