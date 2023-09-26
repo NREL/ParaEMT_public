@@ -33,7 +33,7 @@ M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. R
 ```
 
 <h1> Getting Started with ParaEMT </h1>
-To get started with the EMT Simulator PataEMT, follow these steps:
+To conduct EMT simulations using PataEMT, follow these steps:
 
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/72beb4a9-4aac-475b-a0ab-980435a339b0" width="800">
 
