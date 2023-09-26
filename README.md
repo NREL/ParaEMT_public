@@ -5,11 +5,20 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 <h1> Feature </h1>
 
-* EMT modeling
+* EMT modeling 
 * EMT Network equation: nodal formulation based on Trapezoidal-rule method
 * EMT network parallel solver: BBD
 * Parallel computation of updateing device states and network historical current
 * Compatible with HPC
+* Compatible with dynamic-link library (DLL) supported dynamic models
+* Compiled with the just-in-time (JIT) compiler, Numba, in Python
+* Results down-sampling
+* Save simulation progress as a snapshot file, and resume the simulation from a saved snapshot
+* Test systems library: the Kundur two-area system, IEEE 9-bus system, IEEE 39-bus system, Western Electricity Coordinating Council (WECC) 179-bus system, and WECC 240-bus system
+* Fully open source and transparent: Allows unrestricted access to the underlying source code and encourages active engagement and contributions from the community
+
+<h1> System component library </h1>
+<img src="https://github.com/NREL/ParaEMT_public/assets/102193041/41ff1810-f951-4a28-9a48-3cfb455a627b" width="470">
 
 <h1> Version Advisory </h1>
 
@@ -26,8 +35,19 @@ M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. R
 <h1> Getting Started with ParaEMT </h1>
 To get started with the EMT Simulator PataEMT, follow these steps:
 
-![framework](https://github.com/NREL/ParaEMT_public/assets/102193041/72beb4a9-4aac-475b-a0ab-980435a339b0)
+<img src="https://github.com/NREL/ParaEMT_public/assets/102193041/72beb4a9-4aac-475b-a0ab-980435a339b0" width="800">
 
+<h1> Structure of ParaEMT </h1>
+
+* Main Functions and Subfunction Libraries 
+
+  The first function, main_step0_CreateLargeCases, serves the dual purpose of executing and storing the power flow solution and, optionally, generating synthetic large-scale systems. The second function, main_step1_sim, is responsible for initializing and simulating the system dynamics. The third function, main_step2_save, saves the simulation results
+
+* Simulation Initialization
+<img src="https://github.com/NREL/ParaEMT_public/assets/102193041/a27215f5-9778-4ef9-b603-735a245e16ee" width="350">
+
+* Time Domain Simulation 
+<img src="https://github.com/NREL/ParaEMT_public/assets/102193041/b8094dd4-7015-4060-a999-521adb4bafc6" width="350">
 
 <h1> Developer </h1>
 
