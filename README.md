@@ -29,7 +29,9 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 <h1> Citing </h1>
 
-* If you use ParaEMT for research or consulting, please cite the [following paper](https://www.nrel.gov/docs/fy23osti/87164.pdf) in your publication that uses ParaEMT:
+* If you use ParaEMT for research or consulting, please cite the following papers ([paper 1](https://www.nrel.gov/docs/fy23osti/87164.pdf) and [paper 2](https://ieeexplore.ieee.org/document/10356767)) in your publication that uses ParaEMT:
+*
+* [following paper](https://www.nrel.gov/docs/fy23osti/87164.pdf) in your publication that uses ParaEMT:
 
 ```
 M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. Ramasubramanian, V. Verma, J. Tan, “An Open-Source Parallel EMT Simulation Framework,” Preprint. Golden, CO: National Renewable Energy Laboratory,” NREL/CP-5D00-87164. Sep. 2023.
