@@ -32,7 +32,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 * If you use ParaEMT for research or consulting, please cite the following papers ([paper 1](https://ieeexplore.ieee.org/document/10356767) and [paper 2](https://www.nrel.gov/docs/fy23osti/87164.pdf)) in your publication that uses ParaEMT:
 *
 ```
-M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, J. Tan, “ParaEMT: an open source, parallelizable, and HPC-compatible EMT simulator for large-scale IBR-rich power grids,” IEEE Trans. Power Del., early access, Dec. 2023.
+M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, J. Tan, “ParaEMT: an open source, parallelizable, and HPC-compatible EMT simulator for large-scale IBR-rich power grids,” IEEE Trans. Power Del., vol. 39, no. 2, pp. 911-921, Apr. 2024.
 ```
 ```
 M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. Ramasubramanian, V. Verma, J. Tan, “An open-source parallel EMT simulation framework,” Preprint. Golden, CO: National Renewable Energy Laboratory,” NREL/CP-5D00-87164. Sep. 2023.
