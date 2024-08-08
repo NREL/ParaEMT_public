@@ -3,8 +3,6 @@ import numpy as np
 import scipy.sparse as sp
 import numba
 
-# import math
-
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_set_coo(
         rows,
@@ -71,7 +69,6 @@ def numba_InitNet(
 
     Init_net_Vtha = np.zeros(ngen)
 
-
     #### BEGIN FOR LOOP ####
     for j in range(ngen):
         i = np.where(bus_num == gen_bus[j])[0][0]
@@ -113,9 +110,6 @@ def numba_InitNet(
         Init_net_It[i] = St_temp.conjugate() / Vt_temp.conjugate()
 
         pass
-
-
-
 
     #### END FOR LOOP ####
 
@@ -359,7 +353,6 @@ def numba_InitNet(
                                                Gv1, R, L, 0.0, iC_temp])
     #### END FOR LOOP ####
 
-
     #### BEGIN FOR LOOP ####
     # const Z load model
     if loadmodel_option == 1:
@@ -496,10 +489,6 @@ def numba_InitNet(
         Init_net_coe0[coe_idx + 1, :] = np.array([Fidx + N1, -1, Req, icf, Gv1, 0.0, 0.0, C, iB_temp])
         Init_net_coe0[coe_idx + 2, :] = np.array([Fidx + N2, -1, Req, icf, Gv1, 0.0, 0.0, C, iC_temp])
     #### END FOR LOOP ####
-
-
-
-
 
     # calculate pre and his terms of branch current
     Init_net_V = np.real(Init_net_Vt)
