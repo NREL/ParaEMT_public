@@ -5,7 +5,7 @@ import numba
 
 # import math
 
-# @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_set_coo(
         rows,
         cols,
@@ -20,7 +20,7 @@ def numba_set_coo(
     data[idx] = val
     return
 
-# @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
+@numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_InitNet(
         # pfd
         basemva,
