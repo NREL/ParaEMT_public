@@ -1,11 +1,11 @@
 # from utils import plot_network, plot_matrix
 
-import networkx as nx
+# import networkx as nx
 # import metis
 # import pandas as pd
 from scipy.sparse import csc_matrix
 import scipy.sparse.csgraph as csgraph
-import nxmetis
+# import nxmetis
 import scipy
 import numpy as np
 from bbd_matrix import bbd_matrix, block_vector
