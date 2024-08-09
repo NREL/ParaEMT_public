@@ -6,8 +6,6 @@
 
 ## xlrd v1.2.0 is used to support xlsx format
 
-
-
 import math
 import xlrd
 import numpy as np
@@ -23,7 +21,6 @@ from serial_bbd_matrix import schur_bbd_lu
 
 alpha = np.exp(1j*2*np.pi/3)
 Ainv = np.asarray([[1,1,1],[1,alpha*alpha,alpha],[1,alpha,alpha*alpha]])/3.0
-
 
 # --------------------------------------------------------------------------------------------------
 # power flow data class
@@ -102,8 +99,6 @@ class PFData():
         # switched shunt data
         self.shnt_sw_bus = np.asarray([])
         self.shnt_sw_gb = np.asarray([])
-
-
 
     def getdata(self, psspy):
         # system data
@@ -199,8 +194,6 @@ class PFData():
         self.xfmr_RX = np.asarray(psspy.atrncplx(-1, 1, 1, 1, 1, ['RXACT'])[1][0])
         self.xfmr_k = np.asarray(psspy.atrnreal(-1, 1, 1, 1, 1, ['RATIO'])[1][0])
 
-
-
         # shunt data
         self.shnt_bus = np.asarray(psspy.afxshuntint(-1, 1, 'NUMBER')[1][0])
         self.shnt_id = psspy.afxshuntchar(-1, 1, 'ID')[1][0]
@@ -230,7 +223,6 @@ class PFData():
         for i in range(r):
             for j in range(c):
                 k = c * i + (j + 1)
-
                 # bus
                 pfd.bus_Va.extend(self.bus_Va)
                 pfd.bus_Vm.extend(self.bus_Vm)

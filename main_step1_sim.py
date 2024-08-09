@@ -21,7 +21,7 @@ def main():
     SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
     DSrate = 20 # down sampling rate, i.e. results saved every DSrate sim steps.
 
-    systemN = 6 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
+    systemN = 4 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
     N_row = 1  # haven't tested the mxn layout, so plz don't set N_row/N_col to other nums.
     N_col = 1
 
