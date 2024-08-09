@@ -1,10 +1,8 @@
 # --------------------------------------------
 #  EMT solver main function
-#  2020-2022 Bin Wang, Deepthi Vaidhynathan, Jonathan Maack
-#  Last modified: 3/7/22
+#  2020-2024 Bin Wang, Deepthi Vaidhynathan, Jonathan Maack, Min Xiong
+#  Last modified: 8/8/24
 # --------------------------------------------
-
-## pfd read from .json becomes a dict, instead of original PFData format.
 
 import sys
 import time
@@ -13,13 +11,6 @@ import json
 import numpy as np
 from Lib_BW import *
 from psutils import *
-
-# import scipy.sparse as sp
-# import scipy.sparse.linalg as la
-# import numba
-# numba.config.THREADING_LAYER = 'omp'
-# import pickle
-# import pandas
 
 from preprocessscript import get_json_pkl
 
@@ -30,7 +21,7 @@ def main():
     SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
     DSrate = 20 # down sampling rate, i.e. results saved every DSrate sim steps.
 
-    systemN = 6 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
+    systemN = 4 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
     N_row = 1  # haven't tested the mxn layout, so plz don't set N_row/N_col to other nums.
     N_col = 1
 
@@ -47,13 +38,11 @@ def main():
 
     input_snp = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
 
-
     t0 = time.time()
     if SimMod == 0:
         (pfd, ini, dyd, emt) = initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode = netMod, nparts=nparts)
     else:
         (pfd, ini, dyd, emt) = initialize_from_snp(input_snp, netMod, nparts)
-
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
     # ctrl step change
@@ -72,7 +61,6 @@ def main():
     # Before t = t_release_f, PLL freq are fixed at synchronous freq
     emt.t_release_f = t_release_f
     emt.loadmodel_option = loadmodel_option  # 1-const rlc, 2-const z
-    ## -------------------------------------------------------------------------------------------------------
 
     t1 = time.time()
 
@@ -89,7 +77,6 @@ def main():
     t_upih = 0.0
     Nsteps = 0
 
-
     # time loop
     tn = 0
     tsave = 0
@@ -100,63 +87,44 @@ def main():
         emt.GenTrip(pfd, dyd, ini, tn, netMod)      # configure generation trip
 
         tl_0 = time.time()
-
         emt.predictX(pfd, dyd, emt.ts)
 
         tl_1 = time.time()
-
         emt.Igs = emt.Igs * 0
         emt.updateIg(pfd, dyd, ini)
 
         tl_2 = time.time()
-
         emt.Igi = emt.Igi * 0
         emt.Iibr = emt.Iibr * 0
         emt.updateIibr(pfd, dyd, ini)
 
         tl_3 = time.time()
-
         if emt.loadmodel_option == 1:
             pass
         else:
             emt.Il = emt.Il * 0
-            emt.updateIl(pfd, dyd, tn)                  # update current injection from load
+            emt.updateIl(pfd, dyd, tn)   # update current injection from load
 
         tl_4 = time.time()
-
         emt.solveV(ini)
 
         tl_5 = time.time()
+        emt.BusMea(pfd, dyd, tn)     # bus measurement
 
-        emt.BusMea(pfd, dyd, tn)                    # bus measurement
-        # print(emt.fft_vpn0)
         tl_6 = time.time()
-
         emt.updateX(pfd, dyd, ini, tn)
 
         tl_7 = time.time()
-
         emt.updateXibr(pfd, dyd, ini, ts)
 
         tl_8 = time.time()
-
         if emt.loadmodel_option == 1:
             pass
         else:
             emt.updateXl(pfd, dyd, tn)
 
         tl_9 = time.time()
-
         emt.x_pred = {0:emt.x_pred[1],1:emt.x_pred[2],2:emt.x_pv_1}
-
-
-        # # save a queue for FFT analysis
-        # if len(emt.fft_vabc) >= emt.fft_N:
-        #     emt.fft_vabc.append(emt.Vsol.copy())
-        #     emt.fft_vabc.pop()
-        # else:
-        #     emt.fft_vabc.append(emt.Vsol.copy())
-
 
         if np.mod(tn, DSrate) == 0:
             tsave = tsave + 1
@@ -201,9 +169,7 @@ def main():
 
         Nsteps += 1
 
-
     t_stop = time.time()
-
 
     emt.dump_res(pfd, dyd, ini, SimMod, output_snp_ful, output_snp_1pt, output_res)
 
@@ -244,7 +210,6 @@ def main():
                elapsed
                )
     print(timing_string)
-
 
 # main function
 main()
