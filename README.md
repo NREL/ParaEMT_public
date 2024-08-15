@@ -20,7 +20,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 <h1> Note </h1>
 
 * For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state, and then conduct different contigency simulations from the snapshot
-* To reduce the required computer memory for storing simulation results, we recomment using a larger down-smapling rate, e.g., DSrate=50
+* To reduce the required computer memory for storing simulation results on large systems, we recomment using a larger down-smapling rate, e.g., DSrate=50
 * Currently, we have built a lot of new functions, including Python code for results plotting, bus fault, forced oscillation simulation, license-free power flow solver using Python package ANDES, and son on. A new version that contains more functions will be released in the near future
 * A user manual webpage of ParaEMT is under development and will be released in the near future
 
