@@ -8,7 +8,7 @@ dataTbus = readtable('emt_x_bus.csv');
 dataT_voltage = readtable('emt_3phaseV.csv');
 
 tend = 10;
-dr = 5;
+dr = 10;
 ts = dr*50e-6;
 
 bus_n = 11;
