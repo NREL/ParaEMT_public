@@ -11,7 +11,7 @@ import pandas as pd
 
 def main():
     # read sim data
-    systemN = 6
+    systemN = 5
     ts = 50e-6  # time step
 
     output_snp_ful = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
@@ -166,8 +166,6 @@ def main():
         # Cibr.append(str(pfd.ibr_bus[i]) + '_' + pfd.ibr_id[i] + '_pll_' + 'ze')
         # Cibr.append(str(pfd.ibr_bus[i]) + '_' + pfd.ibr_id[i] + '_pll_' + 'de')
         # Cibr.append(str(pfd.ibr_bus[i]) + '_' + pfd.ibr_id[i] + '_pll_' + 'we')
-
-
 
     t = emt.t.reshape(len(emt.t), 1)
     x = np.insert(np.transpose(emt.x), 0, np.transpose(t), axis = 1)
