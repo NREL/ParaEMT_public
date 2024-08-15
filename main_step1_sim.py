@@ -1,7 +1,7 @@
 # --------------------------------------------
 #  EMT solver main function
-#  2020-2024 Bin Wang, Deepthi Vaidhynathan, Jonathan Maack, Min Xiong
-#  Last modified: 8/8/24
+#  2020-2024 Bin Wang, Min Xiong, Deepthi Vaidhynathan, Jonathan Maack
+#  Last modified: 8/15/24
 # --------------------------------------------
 
 import sys
@@ -19,9 +19,9 @@ os.chdir(workingfolder)
 
 def main():
     SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
-    DSrate = 20 # down sampling rate, i.e. results saved every DSrate sim steps.
+    DSrate = 5 # down sampling rate, i.e. results saved every DSrate sim steps.
 
-    systemN = 4 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
+    systemN = 5 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
     N_row = 1  # haven't tested the mxn layout, so plz don't set N_row/N_col to other nums.
     N_col = 1
 
@@ -53,8 +53,8 @@ def main():
     emt.flag_sc = 1
 
     # gen trip
-    emt.t_gentrip = 100
-    emt.i_gentrip = 1   # 0: 1032 C 
+    emt.t_gentrip = 3
+    emt.i_gentrip = 0   # 0: 1032 C for WECC 240-bus
     emt.flag_gentrip = 1
     emt.flag_reinit = 1
 

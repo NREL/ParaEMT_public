@@ -9,7 +9,6 @@ from partitionutil import form_bbd
 from serial_bbd_matrix import schur_bbd_lu
 
 from preprocessscript import get_json_pkl
-# from preprocessscript import get_json_pkl
 
 import pickle
 import scipy.sparse as sp
