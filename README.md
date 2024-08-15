@@ -73,6 +73,12 @@ https://doelps.org/arntrn
 * For any questions, feedback, or inquiries, please contact our team at ParaEMT@nrel.gov.
 * Report bugs or issues by submitting a [GitHub issue](https://github.com/NREL/ParaEMT_public/issues)
 
+<h1> Note </h1>
+* For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state, and then conduct different contigency simulations using the snapshot.
+* To reduce the required computer memory for storing simulation results, we recomment using a larger down-smapling rate, e.g., DSrate=50.
+* Currently, we have built a lot of new functions, including Python code for results plotting, bus fault, forced oscillation simulation, license-free power flow solver using Python package ANDES, and son on. A new version that contains more functions will be released in the near future.
+* A user manual webpage of ParaEMT is under development and will be released in the near future.
+
 <h1> Contribution </h1>
 If you're passionate about improving ParaEMT, consider contributing to the future development of ParaEMT, you are also welcome to contact us. 
 
