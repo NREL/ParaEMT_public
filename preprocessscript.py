@@ -15,7 +15,7 @@ def get_json_pkl(filename):
         else:
             try:
                 if "j" in data[x][0]:
-                    tmp = [np.complex(y) for y in data[x]]
+                    tmp = [complex(y) for y in data[x]]
                     data[x] = np.array(tmp)
                 else:
                     tmp = data[x]
