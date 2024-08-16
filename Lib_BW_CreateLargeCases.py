@@ -1,20 +1,13 @@
 # --------------------------------------------
 #  EMT solver library
-#  2020-2021 Bin Wang
-#  Last modified: 5/7/21, 5:50 PM
+#  2020-2024 Bin Wang, Min Xiong
+#  Last modified: 8/15/24
 # --------------------------------------------
 
 import math
-# import xlrd
 import numpy as np
-# import scipy.sparse as sp
-# import scipy.sparse.linalg as la
-# from functools import reduce
-#
-# from lib_numba import *
-        
-        
-# --------------------------------------------------------------------------------------------------
+  
+# ---------------------------------------------
 # power flow data class
 class PFData():
 
@@ -92,9 +85,6 @@ class PFData():
         self.shnt_sw_bus = np.asarray([])
         self.shnt_sw_gb = np.asarray([])
 
-
-
-
     def getdata(self, psspy):
         # system data
         self.basemva = psspy.sysmva()
@@ -106,8 +96,6 @@ class PFData():
 
         self.bus_Vm = np.round(np.asarray(psspy.abusreal(-1, 2, 'PU')[1][0])*100000)/100000
         self.bus_Va = np.round(np.asarray(psspy.abusreal(-1, 2, 'ANGLED')[1][0])*10000)/10000/180*np.pi
-        # self.bus_Vm = np.asarray(psspy.abusreal(-1, 2, 'PU')[1][0])
-        # self.bus_Va = np.asarray(psspy.abusreal(-1, 2, 'ANGLED')[1][0]) / 180 * np.pi
 
         self.bus_kV = np.asarray(psspy.abusreal(-1, 2, 'KV')[1][0])
         self.bus_basekV = np.asarray(psspy.abusreal(-1, 2, 'BASE')[1][0])
@@ -122,33 +110,6 @@ class PFData():
 
         self.load_MW = np.round((self.load_Z.real + self.load_I.real + self.load_P.real)*10000)/10000
         self.load_Mvar = np.round((self.load_Z.imag + self.load_I.imag + self.load_P.imag)*10000)/10000
-        # self.load_MW = (self.load_Z.real + self.load_I.real + self.load_P.real)
-        # self.load_Mvar = (self.load_Z.imag + self.load_I.imag + self.load_P.imag)
-
-        # # IBR data
-        # self.ibr_bus = np.asarray([])
-        # self.ibr_id = np.asarray([])
-        # self.ibr_MW = np.asarray([])
-        # self.ibr_Mvar = np.asarray([])
-        #
-        # last_found = -1
-        # while True:
-        #     if 'RE' in self.load_id:
-        #         last_found = self.load_id.index('RE', last_found + 1)
-        #         self.ibr_bus = np.append(self.ibr_bus, self.load_bus[last_found])
-        #         self.ibr_id = np.append(self.ibr_id, 'RE')
-        #         self.ibr_MW = np.append(self.ibr_MW, -self.load_MW[last_found])
-        #         self.ibr_Mvar = np.append(self.ibr_Mvar, -self.load_Mvar[last_found])
-        #
-        #         self.load_id = np.delete(self.load_id, [last_found])
-        #         self.load_bus = np.delete(self.load_bus, [last_found])
-        #         self.load_Z = np.delete(self.load_Z, [last_found])
-        #         self.load_I = np.delete(self.load_I, [last_found])
-        #         self.load_P = np.delete(self.load_P, [last_found])
-        #         self.load_MW = np.delete(self.load_MW, [last_found])
-        #         self.load_Mvar = np.delete(self.load_Mvar, [last_found])
-        #     else:
-        #         break
 
         # generator data
         self.gen_id = psspy.amachchar(-1, 4, 'ID')[1][0]
@@ -158,8 +119,6 @@ class PFData():
 
         self.gen_MW = np.round((self.gen_S.real)*1000)/1000
         self.gen_Mvar = np.round((self.gen_S.imag)*1000)/1000
-        # self.gen_MW = (self.gen_S.real)
-        # self.gen_Mvar = (self.gen_S.imag)
 
         self.gen_MVA_base = np.asarray(psspy.amachreal(-1, 4, 'MBASE')[1][0])
         self.gen_status = np.asarray(psspy.amachint(-1, 4, 'STATUS')[1][0])
@@ -208,8 +167,6 @@ class PFData():
         self.line_id = psspy.abrnchar(-1, 0, 0, 1, 1, ['ID'])[1][0]
         self.line_P = np.asarray(psspy.abrnreal(-1, 1, 1, 1, 1, ['P'])[1][0])
         self.line_Q = np.asarray(psspy.abrnreal(-1, 1, 1, 1, 1, ['Q'])[1][0])
-        # self.line_RX = np.asarray(psspy.abrncplx(-1, 1, 1, 1, 1, ['RX'])[1][0])
-        # self.line_chg = np.asarray(psspy.abrnreal(-1, 1, 1, 1, 1, ['CHARGING'])[1][0])
         self.line_RX = np.round(np.asarray(psspy.abrncplx(-1, 1, 1, 1, 1, ['RX'])[1][0]) * 1000000) / 1000000
         self.line_chg = np.round(np.asarray(psspy.abrnreal(-1, 1, 1, 1, 1, ['CHARGING'])[1][0]) * 1000000) / 1000000
 
@@ -219,7 +176,6 @@ class PFData():
         self.xfmr_id = psspy.atrnchar(-1, 0, 0, 1, 1, ['ID'])[1][0]
         self.xfmr_P = np.asarray(psspy.atrnreal(-1, 1, 1, 1, 1, ['P'])[1][0])
         self.xfmr_Q = np.asarray(psspy.atrnreal(-1, 1, 1, 1, 1, ['Q'])[1][0])
-        # self.xfmr_RX = np.asarray(psspy.atrncplx(-1, 1, 1, 1, 1, ['RXACT'])[1][0])
         self.xfmr_RX = np.round(np.asarray(psspy.atrncplx(-1, 1, 1, 1, 1, ['RXACT'])[1][0]) * 1000000) / 1000000
 
         self.xfmr_k = np.asarray(psspy.atrnreal(-1, 1, 1, 1, 1, ['RATIO'])[1][0])
@@ -230,7 +186,6 @@ class PFData():
                 tempn = self.xfmr_from[i]
                 self.xfmr_from[i] = self.xfmr_to[i]
                 self.xfmr_to[i] = tempn
-
 
         # shunt data
         self.shnt_bus = np.asarray(psspy.afxshuntint(-1, 1, 'NUMBER')[1][0])
@@ -251,7 +206,6 @@ class PFData():
         if r * c == 1:
             pfd = self
             return pfd
-
         upb = ItfcBus[0]
         rtb = ItfcBus[1]
         dnb = ItfcBus[2]
@@ -267,7 +221,6 @@ class PFData():
         for i in range(r):
             for j in range(c):
                 k = c * i + (j + 1)
-
                 # bus
                 pfd.bus_Va = np.append(pfd.bus_Va, self.bus_Va)
                 pfd.bus_Vm = np.append(pfd.bus_Vm, self.bus_Vm)
@@ -390,7 +343,6 @@ class PFData():
                 pfd.line_from = np.append(pfd.line_from, min(FromB, ToB))
                 pfd.line_id = np.append(pfd.line_id, '1')
                 pfd.line_to = np.append(pfd.line_to, max(FromB, ToB))
-
 
             else:  # this is a transformer
                 tempr = tempX / 100.0

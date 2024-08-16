@@ -1,7 +1,7 @@
 # --------------------------------------------
 #  EMT solver plotting function
-#  2020-2021 Bin Wang
-#  Last modified: 5/7/21, 5:50 PM
+#  2020-2024 Bin Wang, Min Xiong
+#  Last modified: 8/15/24,
 # --------------------------------------------
 
 import pickle
@@ -11,21 +11,16 @@ import pandas as pd
 
 def main():
     # read sim data
-    systemN = 5
+    systemN = 6
     ts = 50e-6  # time step
 
     output_snp_ful = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
     output_snp_1pt = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
     output_res = 'sim_res_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
 
-    with open(output_snp_ful,'rb') as f:
-    #with open(output_snp_1pt,'rb') as f:
-    # with open(output_res,'rb') as f:
-    # with open('sim_snp.pkl', 'rb') as f:
-    # with open('sim_res_S5_50u.pkl','rb') as f:
-    # with open('20220226_sim_res_1431N.pkl', 'rb') as f:
+    # with open(output_snp_ful,'rb') as f:
+    with open(output_res,'rb') as f:
         pfd, dyd, ini, emt = pickle.load(f)
-
 
     Vbus = []
     for j in range(3):  # Three phase
@@ -119,7 +114,6 @@ def main():
         C.append(str(pfd.gen_bus[j]) + '_' + pfd.gen_id[j] + '_IEEEST_' + 'x2')
         C.append(str(pfd.gen_bus[j]) + '_' + pfd.gen_id[j] + '_IEEEST_' + 'vs')
 
-
     Cibr = []
     for i in range(dyd.ibr_n):
         Cibr.append(str(pfd.ibr_bus[i]) + '_' + pfd.ibr_id[i] + '_regca_' + 's0')
@@ -185,9 +179,4 @@ def main():
     if len(pfd.load_bus)>0:
         dfLd = pd.DataFrame(np.transpose(emt.x_load))
         dfLd.to_csv("emt_x_load.csv", header=Cload, index=False)
-
-
-
-
-# main function
 main()

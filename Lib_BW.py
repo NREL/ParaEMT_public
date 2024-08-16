@@ -1,12 +1,11 @@
 # --------------------------------------------
 #  EMT solver library
-#  2020-2022 Bin Wang
-#  Last modified: 3/9/22
+#  2020-2024 Bin Wang, Min Xiong
+#  Last modified: 08/15/2024
 # --------------------------------------------
-
 ## xlrd v1.2.0 is used to support xlsx format
 
-import math
+import math, sys
 import xlrd
 import numpy as np
 import scipy.sparse as sp
@@ -22,7 +21,7 @@ from serial_bbd_matrix import schur_bbd_lu
 alpha = np.exp(1j*2*np.pi/3)
 Ainv = np.asarray([[1,1,1],[1,alpha*alpha,alpha],[1,alpha,alpha*alpha]])/3.0
 
-# --------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # power flow data class
 class PFData():
 
@@ -347,7 +346,6 @@ class PFData():
                 pfd.line_id.append('1')
                 pfd.line_to.append(max(FromB, ToB))
 
-
             else:  # this is a transformer
                 tempr = tempX / 100.0
                 if pfd.bus_basekV[FromB - 1] > pfd.bus_basekV[ToB - 1]:
@@ -474,7 +472,6 @@ class PFData():
             return
 
 class DyData():
-
     # Maps string governor model names to integers
     gov_model_map = {
         'GAST':0,
@@ -491,7 +488,6 @@ class DyData():
 
         self.gen_Ra = np.asarray([])  # pu on machine MVA base
         self.gen_X0 = np.asarray([])  # pu on machine MVA base
-
 
         ## gen
         self.gen_n = 0
@@ -517,7 +513,6 @@ class DyData():
         self.gen_genrou_n = 0
         self.gen_genrou_xi_st = 0
         self.gen_genrou_odr = 0
-
 
         ## exc
         self.exc_n = 0
@@ -766,7 +761,6 @@ class DyData():
 
         # load
         self.load_odr = 0
-
 
     def getdata(self, file_dydata, pfd, N):
         # detailed machine model
@@ -1181,13 +1175,6 @@ class DyData():
             self.ec_L22q = np.append(self.ec_L22q,
                                      self.ec_Laq[i] * self.ec_Laq[i] / (
                                              self.gen_genrou_Xq[i] - self.gen_genrou_Xdpp[i]))
-
-
-
-
-
-
-
 
 # EMT sim
 class EmtSimu():
@@ -1788,7 +1775,6 @@ class EmtSimu():
         nbus = len(pfd.bus_num)
 
         # # FFT
-
         # if len(self.fft_vabc) == self.fft_N:
         #     data = np.array(self.fft_vabc)
         #     fft_res = np.fft.rfft(data, self.fft_N, 0)
@@ -1853,8 +1839,6 @@ class EmtSimu():
         #     nx_dvtm = (nx_vtm - vtm_1) / self.ts
         #     x_bus_nx[i * dyd.bus_odr + 5] = nx_dvtm
 
-
-
         #     # bus freq and angle by PLL
         #     # theta
         #     theta = de_1 + self.ts * we_1 * pfd.ws
@@ -1872,7 +1856,6 @@ class EmtSimu():
         #     # vd = 2.0 / 3.0 * np.sum(Pk[0, :] * [va,vb,vc])
         #     vq = 2.0 / 3.0 * np.sum(Pk[1, :] * [va, vb, vc])
 
-
         #     nx_ze = ze_1 + dyd.pll_ke[i] / dyd.pll_te[i] * vq * self.ts
         #     nx_de = de_1 + we_1 * pfd.ws * self.ts
         #     if tn * self.ts < self.t_release_f:
@@ -1881,15 +1864,10 @@ class EmtSimu():
         #     else:
         #         nx_we = 1 + dyd.pll_ke[i] * vq + ze_1
 
-
-
         #     x_bus_nx[i * dyd.bus_odr + 0] = nx_ze
         #     x_bus_nx[i * dyd.bus_odr + 1] = nx_de
         #     x_bus_nx[i * dyd.bus_odr + 2] = nx_we
         #     # x_bus_nx[i * dyd.bus_odr + 3] = nx_vt
-
-        # ## End if
-
         x_bus_nx = np.zeros(nbus * dyd.bus_odr)
 
         numba_BusMea(
@@ -1906,28 +1884,25 @@ class EmtSimu():
             dyd.pll_te,
             tn
         )
-
         self.x_bus_pv_1 = x_bus_nx
-
         return
-
 
     def StepChange(self, dyd, ini, tn):
         if tn * self.ts >= self.t_sc:
             if self.flag_sc == 1:
                 if self.flag_exc_gov == 1:
                     # gov pm
-                    if dyd.gov_type[self.i_gen_sc] == 'TGOV1':
+                    if dyd.gov_type[self.i_gen_sc] == 2:  # 'TGOV1'
                         idx_gov = np.where(dyd.gov_tgov1_idx == self.i_gen_sc)[0][0]
                         self.gref[ini.tgov1_2gen[idx_gov]] = self.gref[ini.tgov1_2gen[idx_gov]] + self.dsp
                         self.flag_sc = 0
 
-                    if dyd.gov_type[self.i_gen_sc] == 'HYGOV':
+                    if dyd.gov_type[self.i_gen_sc] == 1: #'HYGOV'
                         idx_gov = np.where(dyd.gov_hygov_idx == self.i_gen_sc)[0][0]
                         self.gref[ini.hygov_2gen[idx_gov]] = self.gref[ini.hygov_2gen[idx_gov]] + self.dsp
                         self.flag_sc = 0
 
-                    if dyd.gov_type[self.i_gen_sc] == 'GAST':
+                    if dyd.gov_type[self.i_gen_sc] == 0: #'GAST'
                         idx_gov = np.where(dyd.gov_gast_idx == self.i_gen_sc)[0][0]
                         self.gref[ini.gast_2gen[idx_gov]] = self.gref[ini.gast_2gen[idx_gov]] + self.dsp
                         self.flag_sc = 0
@@ -1935,7 +1910,6 @@ class EmtSimu():
                 if self.flag_exc_gov == 0:
                     ini.Init_mac_vref[self.i_gen_sc] = ini.Init_mac_vref[self.i_gen_sc] + self.dsp
                     self.flag_sc = 0
-
 
     def GenTrip(self, pfd, dyd, ini, tn, netMod):
         if self.t_gentrip:
@@ -1948,8 +1922,6 @@ class EmtSimu():
                     ini.InitNet(pfd, self.ts, self.loadmodel_option)  # to re-create rows, cols, data for G0
                     ini.MergeMacG(pfd, dyd, self.ts, self.i_gentrip, netMod)
                     self.flag_gentrip = 0
-
-
 
     def Re_Init(self, pfd, dyd, ini):
         nbus = len(pfd.bus_num)
@@ -1971,7 +1943,6 @@ class EmtSimu():
                 c1 = 0
                 c2 = 1
 
-
             Fidx = int(Init_net_coe0[i, 0].real)
             Tidx = int(Init_net_coe0[i, 1].real)
 
@@ -1988,8 +1959,6 @@ class EmtSimu():
                 node_Ihis[Tidx] += brch_Ihis_temp.real
             brch_Ihis[i] = brch_Ihis_temp.real
             node_Ihis[Fidx] -= brch_Ihis_temp.real
-
-
 
         ## predictX
         pv_dt_1 = np.zeros(ngen)
@@ -2081,7 +2050,6 @@ class EmtSimu():
 
             pd_dt[i] = pv_dt_1[i] + self.ts / 2 * (pd_w[i] + pv_w_1[i]) / 2
 
-
         #  updateIg
         Igs = self.Igs*0
 
@@ -2165,10 +2133,8 @@ class EmtSimu():
             Ibs_n[genbus_idx] = Ibs_n[genbus_idx] + res[1] * dyd.base_Is[i] / (ini.Init_net_IbaseA[genbus_idx] * 1000.0)
             Ics_n[genbus_idx] = Ics_n[genbus_idx] + res[2] * dyd.base_Is[i] / (ini.Init_net_IbaseA[genbus_idx] * 1000.0)
 
-
         #  Solve v
         Vsol = ini.Init_net_G0_lu.solve(Igs + node_Ihis)
-
 
         # UpdateIhis
         node_Ihis_out = np.zeros(nbus*3)
@@ -2259,7 +2225,6 @@ class EmtSimu():
             pickle.dump([pfd, dyd, ini, self], open(output_res, "wb"))
 
         return
-
 
 # states class
 class States():
@@ -2513,21 +2478,13 @@ class States_ibr():
         self.nx_pll_de = np.zeros(nibr)
         self.nx_pll_we = np.zeros(nibr)
 
-
-
-
-
-
-
-
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------
 # EMT initializaiton
 class Initialize():
     def __init__(self, pfd, dyd):
         nbus = len(pfd.bus_num)
         ngen = len(pfd.gen_bus)
         nload = len(pfd.load_bus)
-
 
         self.Init_x = np.asarray([])
         self.Init_x_ibr = np.asarray([])
@@ -2559,12 +2516,10 @@ class Initialize():
 
         self.Init_net_Gt0 = np.asarray([])
 
-
         self.Init_net_V = np.asarray([])  # instantaneous value
         self.Init_brch_Ipre = np.asarray([])
         self.Init_brch_Ihis = np.asarray([])
         self.Init_node_Ihis = np.asarray([])
-
 
         # machine
         self.Init_mac_phy = np.zeros(ngen)
@@ -2715,14 +2670,11 @@ class Initialize():
         self.Init_vtm = np.zeros(nbus)  # measured volt mag (after calc)
         self.Init_dvtm = np.zeros(nbus)  # measured dvm/dt
 
-
         # load
         self.Init_ZL_ang = np.zeros(nload)
         self.Init_ZL_mag = np.zeros(nload)
         self.Init_PL = np.zeros(nload)
         self.Init_QL = np.zeros(nload)
-
-
 
     def InitNet(self, pfd, ts, loadmodel_option):
         (self.Init_net_VbaseA,
@@ -2769,9 +2721,7 @@ class Initialize():
             ts,
             loadmodel_option,
         )
-
         return
-
 
     def InitMac(self, pfd, dyd):
         for i in range(len(pfd.gen_bus)):
@@ -2796,7 +2746,6 @@ class Initialize():
             id_temp = abs(IgA_temp) * math.sin(dt_temp + phy_temp)
             iq_temp = abs(IgA_temp) * math.cos(dt_temp + phy_temp)
 
-
             i1d_temp = 0.0
             i1q_temp = 0.0
             i2q_temp = 0.0
@@ -2809,17 +2758,12 @@ class Initialize():
             psy1q_temp = - dyd.ec_Laq[i] * iq_temp
             psy2q_temp = - dyd.ec_Laq[i] * iq_temp
 
-
             ## used for a while -------------------------------------
             # pref_temp = ed_temp * id_temp + eq_temp * iq_temp
             # qe_temp = eq_temp * id_temp - ed_temp * iq_temp
             ## ---------------------------------------------------
-
-
             pref_temp = psyd_temp * iq_temp - psyq_temp * id_temp
             qe_temp = psyd_temp * id_temp + psyq_temp * iq_temp
-
-
 
             self.Init_mac_phy[i] = phy_temp
             self.Init_mac_IgA[i] = IgA_temp
@@ -2848,7 +2792,6 @@ class Initialize():
             # Pref initialized for governor system
             self.Init_mac_pref[i] = pref_temp
 
-
     def InitExc(self, pfd, dyd):
         for i in range(dyd.exc_sexs_n):
             genbus = pfd.gen_bus[i]
@@ -2859,9 +2802,6 @@ class Initialize():
 
             self.Init_mac_v1[i] = v1
             self.Init_mac_vref[i] = vref
-
-
-
 
     def InitGov(self, pfd, dyd):
         # TGOV1
@@ -2975,7 +2915,6 @@ class Initialize():
             else:
                 pass
 
-
     def InitREGCA(self, pfd, dyd):
         for i in range(len(pfd.ibr_bus)):
             ibrbus = pfd.ibr_bus[i]
@@ -3005,7 +2944,6 @@ class Initialize():
             else:
                 i2 = (Vm - dyd.ibr_regca_Lvpnt0[i]) / (dyd.ibr_regca_Lvpnt1[i] - dyd.ibr_regca_Lvpnt0[i])
             Ip = Ip_out / i2
-
 
             s0 = Ip
             s1 = - Iq
@@ -3040,7 +2978,6 @@ class Initialize():
                 Vref0 = Vm
             else:
                 Vref0 = dyd.ibr_reecb_Vref0[i]
-
 
             self.Init_ibr_reecb_s0[i] = s0
             self.Init_ibr_reecb_s1[i] = s1
@@ -3131,9 +3068,6 @@ class Initialize():
             self.Init_ibr_repca_vq2qPI[i] = 0.0
             self.Init_ibr_repca_p2pPI[i] = 0.0
 
-
-
-
     def InitPLL(self, pfd):
         for i in range(len(pfd.ibr_bus)):
             ibrbus = pfd.ibr_bus[i]
@@ -3143,7 +3077,6 @@ class Initialize():
             self.Init_ibr_pll_de[i] = pfd.bus_Va[ibrbus_idx]
             self.Init_ibr_pll_we[i] = 1.0
 
-
     def InitBusMea(self, pfd):
         self.Init_pll_ze = np.zeros(len(pfd.bus_num))
         self.Init_pll_de = pfd.bus_Va
@@ -3152,7 +3085,6 @@ class Initialize():
         self.Init_vt = pfd.bus_Vm  # calculated volt mag
         self.Init_vtm = pfd.bus_Vm  # measured volt mag (after calc)
         self.Init_dvtm = pfd.bus_Vm * 0  # measured dvm/dt
-
 
     def InitLoad(self, pfd):
         for i in range(len(pfd.load_bus)):
@@ -3166,12 +3098,10 @@ class Initialize():
             else:
                 self.Init_ZL_ang[i] = np.arctan(pfd.load_Mvar[i] / pfd.load_MW[i]) + np.pi
 
-
     def MergeMacG(self, pfd, dyd, ts, i_gentrip = [], mode='inv', nparts=4):
         self.Init_net_Gt0 = sp.coo_matrix((self.Init_net_G0_data, (self.Init_net_G0_rows, self.Init_net_G0_cols)),
                                          shape=(self.Init_net_N, self.Init_net_N)
                                          ).tolil()
-
 
         self.Init_mac_Ld = np.zeros((len(pfd.gen_bus), 3, 3))
         self.Init_mac_Lq = np.zeros((len(pfd.gen_bus), 3, 3))
@@ -3263,13 +3193,6 @@ class Initialize():
             self.Init_mac_Rq2[i][2][1] = 0.0 - (1 + self.Init_mac_alpha[i]) / ts * self.Init_mac_Lq[i][2][1]
             self.Init_mac_Rq2[i][2][2] = dyd.ec_R2q[i] * self.Init_mac_alpha[i] - (1 + self.Init_mac_alpha[i]) / ts * \
                                          self.Init_mac_Lq[i][2][2]
-
-
-
-
-
-
-
             temp_det = self.Init_mac_Rd1[i][1][1] * self.Init_mac_Rd1[i][2][2] - self.Init_mac_Rd1[i][1][2] * \
                        self.Init_mac_Rd1[i][2][1]
             Rd1inv = [[self.Init_mac_Rd1[i][2][2] / temp_det, - self.Init_mac_Rd1[i][1][2] / temp_det],
@@ -3354,8 +3277,6 @@ class Initialize():
                                          shape=(self.Init_net_N, self.Init_net_N)
                                          ).tolil()
 
-        # self.Init_net_G0 = self.Init_net_G0.tolil()
-
         if mode == 'inv':
             self.Init_net_G0_inv = la.inv(self.Init_net_G0.tocsc())
         elif mode == 'lu':
@@ -3371,9 +3292,6 @@ class Initialize():
 
         return
 
-
-
-
     def addtoG0(self, row, col, addedvalue):
         found_flag = 0
         for i in range(len(self.Init_net_G0_data)):
@@ -3387,12 +3305,9 @@ class Initialize():
             self.Init_net_G0_rows = np.append(self.Init_net_G0_rows, row)
             self.Init_net_G0_cols = np.append(self.Init_net_G0_cols, col)
 
-
     def CombineX(self, pfd, dyd):
         xi = 0
-
         # machine states
-
         # GENROU
         dyd.gen_genrou_xi_st = xi
         dyd.gen_genrou_odr = 18
@@ -3480,7 +3395,6 @@ class Initialize():
 
             xi = xi + dyd.pss_ieeest_odr
 
-        # self.Init_gen_N = 22
         dyd.ibr_odr = 41
         for i in range(len(pfd.ibr_bus)):
             # regca
