@@ -19,7 +19,6 @@ class storage:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
-
 def get_json_pkl(filename):
     f = open(filename,)
     data = json.load(f)
