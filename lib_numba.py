@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy.sparse as sp
 import numba
@@ -89,11 +88,9 @@ def numba_InitNet(
         Vt_temp = complex(bus_Vm[i] * np.cos(bus_Va[i]),
                           bus_Vm[i] * np.sin(bus_Va[i])
                           )
-
         Init_net_VtA[i] = Vt_temp
         Init_net_VtB[i] = Vt_temp * complex(-0.5, -0.5*np.sqrt(3.0))
         Init_net_VtC[i] = Vt_temp * complex(-0.5, 0.5*np.sqrt(3.0))
-
 
     for i in range(ngen):
         genbus_idx = np.where(bus_num == gen_bus[i])[0][0]
@@ -103,17 +100,10 @@ def numba_InitNet(
                           )
 
         St_temp = complex(gen_MW[i] / basemva, gen_Mvar[i] / basemva)
-
         Init_net_StA[i] = St_temp
-
         # vt temp to be defn
         Init_net_It[i] = St_temp.conjugate() / Vt_temp.conjugate()
-
         pass
-
-    #### END FOR LOOP ####
-
-
     # prepare G and coe matrices
     N1 = nbus
     N2 = nbus * 2
@@ -125,7 +115,6 @@ def numba_InitNet(
             shnt_sw_bus)
     else:
         nentries = 12*len(line_from) + 12*len(xfmr_from) + 3*len(shnt_bus) + 3 * len(shnt_sw_bus)
-    #
     G0_rows = np.zeros(nentries, dtype=np.int64)
     G0_cols = np.zeros(nentries, dtype=np.int64)
     G0_data = np.zeros(nentries, dtype=np.float64)
@@ -168,13 +157,10 @@ def numba_InitNet(
             Req = R + ts / 2 / CL
             icf = (2*R*CL - ts) / (2*R*CL + ts)
 
-
         idx = 12*i
-
         C = line_chg[i] / 2 / ws
         if C == 0:
             Rs = np.inf  # float('inf')
-
         else:
             Rs = 0.15 * ts / 2.0 / C
             Rc = ts / 2.0 / C
@@ -211,27 +197,22 @@ def numba_InitNet(
             numba_set_coo(G0_rows, G0_cols, G0_data, idx + 10, Fidx + N2, Tidx + N2, -1 / Req)
             numba_set_coo(G0_rows, G0_cols, G0_data, idx + 11, Tidx + N2, Fidx + N2, -1 / Req)
 
-
         # R-L branch
         iA_temp = (Init_net_Vt[Fidx] - Init_net_Vt[Tidx]) / complex(R, X)
         iB_temp = (Init_net_Vt[Fidx + N1] - Init_net_Vt[Tidx + N1]) / complex(R, X)
         iC_temp = (Init_net_Vt[Fidx + N2] - Init_net_Vt[Tidx + N2]) / complex(R, X)
 
         coe_idx = 9*i
-
         Init_net_coe0[coe_idx,:]   = np.array([Fidx, Tidx, Req, icf,
                                                Gv1, R, X, 0.0, iA_temp])
         Init_net_coe0[coe_idx+1,:] = np.array([Fidx+N1, Tidx+N1, Req, icf,
                                                Gv1, R, X, 0.0, iB_temp])
         Init_net_coe0[coe_idx+2,:] = np.array([Fidx+N2, Tidx+N2, Req, icf,
                                                Gv1, R, X, 0.0, iC_temp])
-
         # C - from branch
         iA_temp = Init_net_Vt[Fidx] * complex(0, ws * C)
         iB_temp = Init_net_Vt[Fidx + N1] * complex(0, ws * C)
         iC_temp = Init_net_Vt[Fidx + N2] * complex(0, ws * C)
-
-
         infnum = 1e10
         if Rs == np.inf:
             Init_net_coe0[coe_idx+3,:] = np.array([Fidx, -1, infnum,
@@ -265,7 +246,6 @@ def numba_InitNet(
                                                       -1.0 / (Rc + Rs),
                                                       0.0, 0.0, C, iC_temp,
                                                       ])
-
         # C - to branch
         iA_temp = Init_net_Vt[Tidx] * complex(0, ws * C)
         iB_temp = Init_net_Vt[Tidx + N1] * complex(0, ws * C)
@@ -302,11 +282,7 @@ def numba_InitNet(
                                                       -1.0 / (Rc + Rs),
                                                       0.0, 0.0, C, iC_temp,
                                                       ])
-    #### END FOR LOOP ####
 
-
-
-    #### BEGIN FOR LOOP ####
     # R-L model xfmr
     for i in range(len(xfmr_from)):
         Frombus = xfmr_from[i]
@@ -338,7 +314,6 @@ def numba_InitNet(
         numba_set_coo(G0_rows, G0_cols, G0_data, idx+10, Fidx+N2, Tidx+N2, -1 / Req)
         numba_set_coo(G0_rows, G0_cols, G0_data, idx+11, Tidx+N2, Fidx+N2, -1 / Req)
 
-
         # R-L branch
         iA_temp = (Init_net_Vt[Fidx] - Init_net_Vt[Tidx]) / complex(R, ws * L)
         iB_temp = (Init_net_Vt[Fidx + N1] - Init_net_Vt[Tidx + N1]) / complex(R, ws * L)
@@ -351,18 +326,14 @@ def numba_InitNet(
                                                Gv1, R, L, 0.0, iB_temp])
         Init_net_coe0[coe_idx+2,:] = np.array([Fidx + N2, Tidx + N2, Req, icf,
                                                Gv1, R, L, 0.0, iC_temp])
-    #### END FOR LOOP ####
 
-    #### BEGIN FOR LOOP ####
     # const Z load model
     if loadmodel_option == 1:
         for i in range(len(load_bus)):
             Frombus = load_bus[i]
             Fidx = np.where(bus_num == Frombus)[0][0]
-
             Z = abs(Init_net_Vt[Fidx])*abs(Init_net_Vt[Fidx]) / (complex(load_MW[i], - load_Mvar[i]) / basemva)
             Y = 1.0 / Z
-
             R = np.real(Z)
             X = np.imag(Z)
 
@@ -372,7 +343,6 @@ def numba_InitNet(
                 Rp_inv = 1.0 / Rp
 
                 C = 0.0
-
                 Req = (1 + R * (ts / 2.0 / L + Rp_inv)) / (ts / 2.0 / L + Rp_inv)
                 icf = (1 - R * (ts / 2.0 / L - Rp_inv)) / (1 + R * (ts / 2.0 / L + Rp_inv))
                 Gv1 = (ts / 2.0 / L - Rp_inv) / (1 + R * (ts / 2.0 / L + Rp_inv))
@@ -398,7 +368,6 @@ def numba_InitNet(
             numba_set_coo(G0_rows, G0_cols, G0_data, idx+1, Fidx+N1, Fidx+N1, 1 / Req)
             numba_set_coo(G0_rows, G0_cols, G0_data, idx+2, Fidx+N2, Fidx+N2, 1 / Req)
 
-
             # shnt branch
             iA_temp = Init_net_Vt[Fidx] / Z
             iB_temp = Init_net_Vt[Fidx + N1] / Z
@@ -410,17 +379,13 @@ def numba_InitNet(
             Init_net_coe0[coe_idx+2,:] = np.array([Fidx + N2, -1, Req, icf, Gv1, R, L, C, iC_temp])
         else:
             pass
-    #### END FOR LOOP ####
 
-
-    #### BEGIN FOR LOOP ####
     # shunt model
     for i in range(len(shnt_bus)):
         Frombus = shnt_bus[i]
         Fidx = np.where(bus_num == Frombus)[0][0]
 
         Y = np.conjugate(shnt_gb[i]) / basemva
-
         C = - np.imag(Y) / ws
         Rs = 0.15 * ts / 2.0 / C / damptrap
 
@@ -432,7 +397,6 @@ def numba_InitNet(
             idx = 12 * len(line_from) + 12 * len(xfmr_from) + 3 * len(load_bus) + 3 * i
         else:
             idx = 12*len(line_from) + 12*len(xfmr_from) + 3*i
-        #
         numba_set_coo(G0_rows, G0_cols, G0_data, idx, Fidx, Fidx, 1 / Req)
         numba_set_coo(G0_rows, G0_cols, G0_data, idx+1, Fidx+N1, Fidx+N1, 1 / Req)
         numba_set_coo(G0_rows, G0_cols, G0_data, idx+2, Fidx+N2, Fidx+N2, 1 / Req)
@@ -446,20 +410,16 @@ def numba_InitNet(
             coe_idx = 9 * len(line_from) + 3 * len(xfmr_from) + 3 * len(load_bus) + 3 * i
         else:
             coe_idx = 9*len(line_from) + 3*len(xfmr_from) + 3*i
-        #
         Init_net_coe0[coe_idx,:] = np.array([Fidx, -1, Req, icf, Gv1, 0.0, 0.0, C, iA_temp])
         Init_net_coe0[coe_idx+1,:] = np.array([Fidx+N1, -1, Req, icf, Gv1, 0.0, 0.0, C, iB_temp])
         Init_net_coe0[coe_idx+2,:] = np.array([Fidx+N2, -1, Req, icf, Gv1, 0.0, 0.0, C, iC_temp])
-    #### END FOR LOOP ####
 
-    #### BEGIN FOR LOOP ####
     # switched shunt model
     for i in range(len(shnt_sw_bus)):
         Frombus = shnt_sw_bus[i]
         Fidx = np.where(bus_num == Frombus)[0][0]
 
         Y = np.conjugate(- shnt_sw_gb[i]) / basemva / bus_Vm[Fidx] / bus_Vm[Fidx]
-
         C = - np.imag(Y) / ws
         Rs = 0.15 * ts / 2.0 / C / damptrap
 
@@ -471,7 +431,6 @@ def numba_InitNet(
             idx = 12 * len(line_from) + 12 * len(xfmr_from) + 3 * len(load_bus) + 3 * len(shnt_bus) + 3 * i
         else:
             idx = 12 * len(line_from) + 12 * len(xfmr_from) + 3 * len(shnt_bus) + 3 * i
-        #
         numba_set_coo(G0_rows, G0_cols, G0_data, idx, Fidx, Fidx, 1 / Req)
         numba_set_coo(G0_rows, G0_cols, G0_data, idx + 1, Fidx + N1, Fidx + N1, 1 / Req)
         numba_set_coo(G0_rows, G0_cols, G0_data, idx + 2, Fidx + N2, Fidx + N2, 1 / Req)
@@ -488,7 +447,6 @@ def numba_InitNet(
         Init_net_coe0[coe_idx, :] = np.array([Fidx, -1, Req, icf, Gv1, 0.0, 0.0, C, iA_temp])
         Init_net_coe0[coe_idx + 1, :] = np.array([Fidx + N1, -1, Req, icf, Gv1, 0.0, 0.0, C, iB_temp])
         Init_net_coe0[coe_idx + 2, :] = np.array([Fidx + N2, -1, Req, icf, Gv1, 0.0, 0.0, C, iC_temp])
-    #### END FOR LOOP ####
 
     # calculate pre and his terms of branch current
     Init_net_V = np.real(Init_net_Vt)
@@ -496,7 +454,6 @@ def numba_InitNet(
     Init_node_Ihis = np.zeros(Init_net_N)
     Init_brch_Ihis = np.zeros(len(Init_brch_Ipre))
 
-    #### BEGIN FOOR LOOP ####
     for i in range(len(Init_brch_Ipre)):
         Fidx = int(Init_net_coe0[i, 0].real)
         Tidx = int(Init_net_coe0[i, 1].real)
@@ -510,7 +467,6 @@ def numba_InitNet(
 
         Init_brch_Ihis[i] = brch_Ihis_temp.real
         Init_node_Ihis[Fidx] -= brch_Ihis_temp.real
-    #### END FOR LOOP ####
 
     return (Init_net_VbaseA,
             Init_net_ZbaseA,
@@ -549,7 +505,6 @@ def numba_predictX(
         # xlen
         xlen
 ):
-
     ngen = len(gen_bus)
 
     neg_id = np.zeros(ngen)
@@ -576,7 +531,6 @@ def numba_predictX(
     pv_psyq_1 = np.zeros(ngen)
     pv_EFD_1 = np.zeros(ngen)
 
-
     point_one_tuple = None
     point_two_tuple = None
     point_three_tuple = None
@@ -598,7 +552,6 @@ def numba_predictX(
 
         idx = i * exc_sexs_odr + exc_sexs_xi_st
         pv_EFD_1[i] = x_pv_1[idx + 1]
-
 
     pv_u_d_1 = -pv_psyq_1 * pv_w_1 / ws
     pv_u_q_1 = pv_psyd_1 * pv_w_1 / ws
@@ -625,7 +578,6 @@ def numba_predictX(
 
     # predicted point
     if xlen == 1:
-
         for i in numba.prange(ngen):
             pd_w[i] = pv_w_1[i]
             pd_id[i] = pv_id_1[i]
@@ -635,7 +587,6 @@ def numba_predictX(
             pd_u_q[i] = pv_u_q_1[i]
 
     else: # two- or three-point prediction
-
         ## POINT 2 ##
         pv_dt_2 = np.zeros(ngen)
         pv_w_2 = np.zeros(ngen)
@@ -648,7 +599,6 @@ def numba_predictX(
         pv_EFD_2 = np.zeros(ngen)
         pv_psyd_2 = np.zeros(ngen)
         pv_psyq_2 = np.zeros(ngen)
-
 
         for i in numba.prange(ngen):
             idx = i * gen_genrou_odr
@@ -665,7 +615,6 @@ def numba_predictX(
 
             idx = i * exc_sexs_odr + exc_sexs_xi_st
             pv_EFD_2[i] = x_pv_2[idx + 1]
-
 
         pv_u_d_2 = -pv_psyq_2 * pv_w_2 / ws
         pv_u_q_2 = pv_psyd_2 * pv_w_2 / ws
@@ -699,9 +648,7 @@ def numba_predictX(
                 pd_EFD[i] = 2.0 * pv_EFD_1[i] - pv_EFD_2[i]
                 pd_u_d[i] = 2.0 * pv_u_d_1[i] - pv_u_d_2[i]
                 pd_u_q[i] = 2.0 * pv_u_q_1[i] - pv_u_q_2[i]
-
         else: # three-point prediction
-
             ## POINT 3 ##
             pv_dt_3 = np.zeros(ngen)
             pv_w_3 = np.zeros(ngen)
@@ -764,11 +711,10 @@ def numba_predictX(
                 pd_u_d[i] = 1.25 * pv_u_d_1[i] + 0.5 * pv_u_d_2[i] - 0.75 * pv_u_d_3[i]
                 pd_u_q[i] = 1.25 * pv_u_q_1[i] + 0.5 * pv_u_q_2[i] - 0.75 * pv_u_q_3[i]
 
-        #### END 2- OR 3-POINT IF-ELSE ####
+    #### END 2- OR 3-POINT IF-ELSE ####
     #### END 1- OR MORE-POINT IF-ELSE ####
     for i in numba.prange(ngen):
         pd_dt[i] = pv_dt_1[i] +  ts * (0.5*(pv_w_1[i] + pd_w[i]))
-
 
     return (pd_w,
             pd_id,
@@ -832,7 +778,6 @@ def numba_updateIg(
         flag,
         geni,
 ):
-
     nbus = len(bus_num)
     ngen = len(gen_bus)
 
@@ -841,7 +786,6 @@ def numba_updateIg(
     Ics_n = Igs[2*nbus:]
 
     for i in numba.prange(ngen):
-
         # extract states ed and eq in previous step
         pv_ed = x_pv_1[i * gen_genrou_odr + 0 + 8]
         pv_eq = x_pv_1[i * gen_genrou_odr + 0 + 9]
@@ -849,9 +793,7 @@ def numba_updateIg(
         if i==geni:
             if flag ==0:
                 continue
-
         EFD2efd = ec_Rfd[i] / ec_Lad[i]
-
         temp1 = np.sum(Init_mac_Rd2[i, 0, :] * pv_i_d_1[:, i])
         pv_his_d_1_temp = -Init_mac_alpha[i] * pv_ed + Init_mac_alpha[i] * pv_u_d_1[i] + temp1
         pv_his_d_1[i] = pv_his_d_1_temp
@@ -872,27 +814,18 @@ def numba_updateIg(
 
         temp6 = np.sum(Init_mac_Rq2[i, 2 ,:] * pv_i_q_1[:, i])
         pv_his_2q_1[i] = temp6
-
         pv_his_red_d_1_temp = pv_his_d_1_temp - (Init_mac_Rd_coe[i, 0] * (pv_his_fd_1_temp - pd_EFD[i] * EFD2efd) + Init_mac_Rd_coe[i, 1] * temp3)
         pv_his_red_q_1_temp = pv_his_q_1_temp - (Init_mac_Rq_coe[i, 0] * temp5                                    + Init_mac_Rq_coe[i, 1] * temp6)
         pv_his_red_d_1[i] = pv_his_red_d_1_temp
         pv_his_red_q_1[i] = pv_his_red_q_1_temp
-
         ed_temp = pd_u_d[i] + pv_his_red_d_1_temp
         eq_temp = pd_u_q[i] + pv_his_red_q_1_temp
-
         ed_mod_temp = ed_temp - (Init_mac_Rd[i] - Init_mac_Rq[i]) / 2.0 * pd_id[i]
         eq_mod_temp = eq_temp + (Init_mac_Rd[i] - Init_mac_Rq[i]) / 2.0 * pd_iq[i]
-
-
-
         id_src_temp = ed_mod_temp / Init_mac_Rav[i]
         iq_src_temp = eq_mod_temp / Init_mac_Rav[i]
-
         ed_mod[i] = ed_mod_temp
         eq_mod[i] = eq_mod_temp
-
-
 
         # theta
         genbus_idx = np.where(bus_num == gen_bus[i])[0][0]
@@ -911,8 +844,6 @@ def numba_updateIg(
         Ias_n[genbus_idx] = Ias_n[genbus_idx] + res[0] * base_Is[i] / (Init_net_IbaseA[genbus_idx] * 1000.0)
         Ibs_n[genbus_idx] = Ibs_n[genbus_idx] + res[1] * base_Is[i] / (Init_net_IbaseA[genbus_idx] * 1000.0)
         Ics_n[genbus_idx] = Ics_n[genbus_idx] + res[2] * base_Is[i] / (Init_net_IbaseA[genbus_idx] * 1000.0)
-
-
 
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_updateIibr(
@@ -935,7 +866,6 @@ def numba_updateIibr(
         x_bus_pv_1,
         bus_odr,
 ):
-
     nbus = len(bus_num)
     nibr = len(ibr_bus)
 
@@ -951,10 +881,6 @@ def numba_updateIibr(
         regca_s1_1 = x_ibr_pv_1[i * ibr_odr + 1]
         regca_i1_1 = x_ibr_pv_1[i * ibr_odr + 5]
         regca_i2_1 = x_ibr_pv_1[i * ibr_odr + 6]
-        # pll_de_1 = x_ibr_pv_1[i * ibr_odr + 42]
-        # pll_we_1 = x_ibr_pv_1[i * ibr_odr + 43]
-
-
 
         pll_de_1 = x_bus_pv_1[ibrbus_idx * bus_odr + 1]
         pll_we_1 = x_bus_pv_1[ibrbus_idx * bus_odr + 2]
@@ -1000,7 +926,6 @@ def numba_BusMea(
         # other
         tn,
 ):
-
     for i in numba.prange(nbus):
 
         idx = i * bus_odr
@@ -1047,11 +972,7 @@ def numba_BusMea(
         x_bus_nx[idx] = nx_ze
         x_bus_nx[idx + 1] = nx_de
         x_bus_nx[idx + 2] = nx_we
-
-    #### End for loop
-
     return
-
 
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_updateX(
@@ -1217,7 +1138,6 @@ def numba_updateX(
     for i in numba.prange(gen_genrou_n):
 
         idx = gen_genrou_odr * i + gen_genrou_xi_st
-
         # if i == i_gentrip and flag_gentrip == 0:
         #     # x_pv_1_out[idx:idx+gen_genrou_odr] = 0.0
         #     continue
@@ -1241,7 +1161,6 @@ def numba_updateX(
 
         else:
             print("ERROR: Unrecognized governor type: ", gov_type[i])
-
 
         # theta
         genbus_idx = np.where(bus_num == gen_bus[i])[0][0]
@@ -1283,12 +1202,9 @@ def numba_updateX(
         nx_psy1d = (- ec_Lad[i] * nx_id + ec_Lf1d[i] * nx_ifd + ec_L11d[i] * nx_i1d)
         nx_psy2q = (- ec_Laq[i] * nx_iq + ec_Laq[i] * nx_i1q + ec_L22q[i] * nx_i2q)
 
-
-        ## newly finalized on 3/3/2022 ----------------------------------------------------------
         nx_pe = nx_psyd * nx_iq - nx_psyq * nx_id
         nx_qe = nx_psyd * nx_id + nx_psyq * nx_iq
         nx_w = pv_w_1[i] + (ws*(pv_pm/(pv_w_1[i]/ws) - nx_pe) - gen_D[i] * (pv_w_1[i] - ws)) / gen_H[i] / 2.0 * ts
-        ## ----------------------------------------- end ----------------------------------------
 
         nx_dt = pv_dt_1[i] + (nx_w + pv_w_1[i]) / 2.0 * ts
 
@@ -1313,7 +1229,6 @@ def numba_updateX(
         x_pv_1_out[idx + 16] = nx_ed * nx_id + nx_eq * nx_iq
         x_pv_1_out[idx + 17] = nx_qe
 
-
         # pss
         pss_input = (nx_w - ws) / ws  # pu freq deviation
 
@@ -1332,7 +1247,6 @@ def numba_updateX(
             pv_y7 = x_pv_1[pv_idx + 6]
             pv_x1 = x_pv_1[pv_idx + 7]
             pv_x2 = x_pv_1[pv_idx + 8]
-
 
             dxdt = (pss_input - pv_x1) / ts
             dxdt_1 = (pv_x1 - pv_x2) / ts
@@ -1381,7 +1295,6 @@ def numba_updateX(
             else:
                 temp_nx_y7 = pv_y7 + (pss_ieeest_KS[idx_pss] * pv_y6 - pv_y7 / pss_ieeest_T5[idx_pss]) / pss_ieeest_T6[idx_pss] * pss_ieeest_T5[idx_pss] * ts
 
-
             dy7dt = (temp_nx_y7 - pv_y7) / ts
             if dy7dt > pss_ieeest_LSMAX[idx_pss]:
                 vss = pss_ieeest_LSMAX[idx_pss]
@@ -1429,21 +1342,13 @@ def numba_updateX(
             x_pv_1_out[pv_idx + 8] = pv_x1
             x_pv_1_out[pv_idx + 9] = vs
 
-            # # -------------------------- bypass pss ---------------------
-            # vs = 0
-            # x_pv_1_out[pv_idx + 9] = 0
-
-        #### END PSS IF-ELSE ####
-
         # exc
         idx_exc = np.where(exc_sexs_idx == i)[0][0]
         pv_v1 = x_pv_1[exc_sexs_odr * idx_exc + exc_sexs_xi_st + 0]
-
         if len(idx_pss1)==0:
             vs = 0
         else:
             pass
-
 
         vref_n = vref[i]
         dvref = (vref_n - vref_1[i])/ts
@@ -1458,27 +1363,18 @@ def numba_updateX(
         exc_input_dvt = dvtm_1
 
         nx_v1 = pv_v1 + ((vref_n - exc_input_vt - pv_v1 + vs)/exc_sexs_TB[i] + exc_sexs_TA[i]/exc_sexs_TB[i]*(dvref - exc_input_dvt)) * ts
-
         if exc_sexs_TE[i] == 0:
             EFD = exc_sexs_K[i] * pv_v1
         else:
             EFD = pv_EFD_1[i] + (exc_sexs_K[i] * pv_v1 - pv_EFD_1[i]) * ts / exc_sexs_TE[i]
-
         if EFD < exc_sexs_Emin[i]:
             EFD = exc_sexs_Emin[i]
-
         if EFD > exc_sexs_Emax[i]:
             EFD = exc_sexs_Emax[i]
-
         nx_EFD = EFD
-
 
         x_pv_1_out[exc_sexs_odr * idx_exc + exc_sexs_xi_st + 0] = nx_v1
         x_pv_1_out[exc_sexs_odr * idx_exc + exc_sexs_xi_st + 1] = nx_EFD
-
-        # # ----------------- bypass exc ------------------------
-        # x_pv_1[exc_sexs_odr * idx_exc + exc_sexs_xi_st + 1] = pv_EFD_1[i]
-
 
         # gov
         gov_input = nx_w / ws - 1.0
@@ -1507,7 +1403,6 @@ def numba_updateX(
 
             # # --------------------------- to bypass gov ----------------------------------
             # x_pv_1_out[pv_idx + 2] = pv_pm
-
             # nx_p1 = temp_nx_p1
             # nx_p2 = temp_nx_p2
             # nx_p3 = temp_nx_p3
@@ -1556,8 +1451,6 @@ def numba_updateX(
             # # --------------------------- to bypass gov ----------------------------------
             # x_pv_1_out[pv_idx + 4] = pv_pm
 
-
-
         if gov_type[i] == 0: # 'GAST'
 
             idx_gov = np.where(gov_gast_idx==i)[0][0]
@@ -1589,8 +1482,6 @@ def numba_updateX(
 
             # # --------------------------- to bypass gov ----------------------------------
             # x_pv_1_out[pv_idx + 3] = pv_pm
-
-        #### END IF-ELSE GOVERNOR TYPE ####
 
         # TODO: Do these calculations need to be done after a gen fault?
         # At the end of updateX in Lib_BW.py for serial version.
@@ -1624,11 +1515,7 @@ def numba_updateX(
         x_pv_1_out[i*gen_genrou_odr + 16] = pe
         x_pv_1_out[i*gen_genrou_odr + 17] = qe
 
-    #### END FOR LOOP ####
-
     return x_pv_1_out
-
-
 
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
 def numba_updateXibr(
@@ -1789,13 +1676,10 @@ def numba_updateXibr(
         repca_vq2qPI_1 = x_ibr_pv_1[i * Init_ibr_N + 36]
         repca_p2pPI_1 = x_ibr_pv_1[i * Init_ibr_N + 37]
 
-
-
         # vm is from outside, va and vf are from PLL
         Vm = x_bus_pv_1[ibrbus_idx*bus_odr + 4]
         Va = x_bus_pv_1[ibrbus_idx*bus_odr + 1]
         Vf = x_bus_pv_1[ibrbus_idx*bus_odr + 2]
-
 
         # REGCA
         nx_regca_Vap = Va
@@ -1849,7 +1733,6 @@ def numba_updateXibr(
 
         nx_regca_s0 = s0_temp
         nx_regca_ip2rr = tempin1
-
 
         # REECB ------------------------------------------------------------
         if ibr_reecb_PQFLAG[i] == 0:
@@ -1989,7 +1872,6 @@ def numba_updateXibr(
 
         nx_reecb_Ipcmd = Ipcmd
 
-
         # REPCA -----------------------------------------------------
         f_temp = repca_Freq_ref_1 - Vf
         if (f_temp <= ibr_repca_fdbd2[i]) & (f_temp >= ibr_repca_fdbd1[i]):
@@ -2097,8 +1979,6 @@ def numba_updateXibr(
         # nx_regca_i1 = regca_i1_1
         # nx_regca_i2 = regca_i2_1
 
-
-
         idx = Init_ibr_N * i
         x_ibr_pv_1[idx] = nx_regca_s0
         x_ibr_pv_1[idx + 1] = nx_regca_s1
@@ -2145,10 +2025,7 @@ def numba_updateXibr(
         x_ibr_pv_1[idx + 39] = pe
         x_ibr_pv_1[idx + 40] = qe
 
-    #### END FOR LOOP ####
-
     return x_ibr_pv_1
-
 
 ## WARNING: If parallelized, this function contains race conditions!!
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
@@ -2160,24 +2037,15 @@ def numba_updateIhis(brch_Ihis, Vsol, Init_net_coe0, nnodes):
         Fidx = int(Init_net_coe0[i,0].real)
         Tidx = int(Init_net_coe0[i,1].real)
 
-        #### IF CLAUSE ####
         if Init_net_coe0[i,1] == -1:
             if Init_net_coe0[i,2] == 0:
                 continue
             brch_Ipre[i] = Vsol[Fidx]/Init_net_coe0[i,2].real + brch_Ihis[i]
             brch_Ihis_temp = Init_net_coe0[i,3] * brch_Ipre[i] + Init_net_coe0[i,4] * Vsol[Fidx]
-
-        #### ELSE CLAUSE ####
         else:
-
             brch_Ipre[i] = (Vsol[Fidx] - Vsol[Tidx])/Init_net_coe0[i,2].real + brch_Ihis[i]
             brch_Ihis_temp = Init_net_coe0[i,3] * brch_Ipre[i] + Init_net_coe0[i,4] * (Vsol[Fidx] - Vsol[Tidx])
             node_Ihis[Tidx] += brch_Ihis_temp.real
-
-        #### END IF-ELSE STATEMENT ####
-
         brch_Ihis[i] = brch_Ihis_temp.real
         node_Ihis[Fidx] -= brch_Ihis_temp.real
-    #### END FOR-LOOP ####
-
     return (brch_Ipre, node_Ihis)

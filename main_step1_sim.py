@@ -11,7 +11,6 @@ import json
 import numpy as np
 from Lib_BW import *
 from psutils import *
-
 from preprocessscript import get_json_pkl
 
 workingfolder = '.'
@@ -21,12 +20,12 @@ def main():
     SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
     DSrate = 10 # down sampling rate, i.e. results saved every DSrate sim steps.
 
-    systemN = 5 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
+    systemN = 4 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
     N_row = 1  # haven't tested the mxn layout, so plz don't set N_row/N_col to other nums.
     N_col = 1
 
     ts = 50e-6  # time step, second
-    Tlen = 10  # total simulation time length, second
+    Tlen = 20  # total simulation time length, second
     t_release_f = 0.0
     loadmodel_option = 1  # 1-const rlc, 2-const z
     netMod = 'lu'
@@ -46,14 +45,14 @@ def main():
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
     # ctrl step change
-    emt.t_sc = 1000
+    emt.t_sc = 100
     emt.i_gen_sc = 0
     emt.flag_exc_gov = 1  # 0 - exc, 1 - gov
     emt.dsp = - 0.02
     emt.flag_sc = 1
 
     # gen trip
-    emt.t_gentrip = 3
+    emt.t_gentrip = 5
     emt.i_gentrip = 0   # 0: 1032 C for WECC 240-bus
     emt.flag_gentrip = 1
     emt.flag_reinit = 1
@@ -211,5 +210,4 @@ def main():
                )
     print(timing_string)
 
-# main function
 main()

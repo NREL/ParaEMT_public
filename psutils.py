@@ -40,15 +40,13 @@ def get_json_pkl(filename):
     pfd = storage(**data)
     return (pfd)
 
-
 def load_pfd(filename):
     return PFData.load_from_json(get_json_pkl(filename))
 
-
 def initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode='bbd', nparts=4):
-
     print("Running simulation for system {:d} in layout {:d} x {:d}".format(
         systemN, N_row, N_col))
+    
     if systemN == 1:
         pfd_name = 'pfd_4_' + str(N_row) + '_' + str(N_col)
     elif systemN == 2:
@@ -63,8 +61,6 @@ def initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode='bbd', n
         pfd_name = 'pfd_2area_' + str(N_row) + '_' + str(N_col)
     else:
         pfd_name = []
-
-
     filename = os.path.join(workingfolder, 'cases', pfd_name + '.json')
     pfd = load_pfd(filename)
 
@@ -124,7 +120,7 @@ def initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode='bbd', n
     ini.InitGov(pfd, dyd)
     print('Gov initialized')
     # ti_5 = time.time()
-    ini.InitPss(pfd, dyd)  # IEEEST added
+    ini.InitPss(pfd, dyd)  
     print('Pss initialized')
     # ti_6 = time.time()
     ini.InitREGCA(pfd, dyd)
@@ -176,23 +172,35 @@ def initialize_emt(workingfolder, systemN, N_row, N_col, ts, Tlen, mode='bbd', n
     #     ti_13 - ti_12, (ti_13 - ti_12) / elapsed,
     #     elapsed
     # )
-
     # print(tini_str)
-
+    ascii_art = """
+     ____                 _____ __  __ _____ 
+    |  _ \ __ _ _ __ __ _| ____|  \/  |_   _|
+    | |_) / _` | '__/ _` |  _| | |\/| | | |  
+    |  __/ (_| | | | (_| | |___| |  | | | |   copyright: NREL
+    |_|   \__,_|_|  \__,_|_____|_|  |_| |_|   email: ParaEMT@nrel.gov
+    """
+    print(ascii_art)
+    print('System initialized')
+    print('Compiling the code') 
     emt.preprocess(ini, pfd, dyd)
-
     return (pfd, ini, dyd, emt)
 
-
 def initialize_from_snp(input_snp, netMod, nparts):
+    ascii_art = """
+     ____                 _____ __  __ _____ 
+    |  _ \ __ _ _ __ __ _| ____|  \/  |_   _|
+    | |_) / _` | '__/ _` |  _| | |\/| | | |  
+    |  __/ (_| | | | (_| | |___| |  | | | |   copyright: NREL
+    |_|   \__,_|_|  \__,_|_____|_|  |_| |_|   email: ParaEMT@nrel.gov
+    """
+    print(ascii_art)
     with open(input_snp, 'rb') as f:
         pfd, dyd, ini, emt = pickle.load(f)
         emt.t = [0.0]
-
         ini.Init_net_G0 = sp.coo_matrix((ini.Init_net_G0_data, (ini.Init_net_G0_rows, ini.Init_net_G0_cols)),
                                         shape=(ini.Init_net_N, ini.Init_net_N)
                                         ).tolil()
-
         if netMod == 'inv':
             ini.Init_net_G0_inv = la.inv(ini.Init_net_G0.tocsc())
         elif netMod == 'lu':
@@ -205,6 +213,8 @@ def initialize_from_snp(input_snp, netMod, nparts):
         else:
             raise ValueError('Unrecognized mode: {}'.format(netMod))
         ini.admittance_mode = netMod
+    print('System initialized')
+    print('Compiling the code') 
     return (pfd, ini, dyd, emt)
 
 

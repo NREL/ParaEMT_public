@@ -9,36 +9,26 @@ import scipy.sparse.csgraph as csgraph
 import scipy
 import numpy as np
 from bbd_matrix import bbd_matrix, block_vector
-
 import time
 
 def admittance_to_BBD(A, num_parts=4):
-
     t0 = time.time()
-
     G2 = nx.Graph(A)
     G = nx.Graph()
     nodess = [x+1 for x in G2.nodes]
     edgess = [(x+1, y+1) for (x,y) in G2.edges]
     G.add_nodes_from(nodess)
     G.add_edges_from(edgess)
-
     t1 = time.time()
-
     edgecuts, partitions  = nxmetis.partition(G,num_parts,recursive=True, options=nxmetis.MetisOptions(rpart=0,niter=1))
-
     t2 = time.time()
-
     org_matrix = A
-
     nodes_part =  {}
     outside_node = {}
     for x in range(len(partitions)):
         nodes_part[x] = partitions[x]
         outside_node[x] = []
-
     t3 = time.time()
-
     common_edges = []
     partition_edges = {}
     all_partition_edges = []
@@ -55,7 +45,6 @@ def admittance_to_BBD(A, num_parts=4):
                     outside_node[part].append(e[0])
                 else:
                     outside_node[part].append(e[1])
-
     t4 = time.time()
 
     for e in G.edges():
@@ -174,13 +163,9 @@ def admittance_to_BBD(A, num_parts=4):
         t13 - t12, (t13 - t12)/elapsed,
         elapsed,
     )
-
     print(time_str)
-
     BBD.print_summary()
-        
     return (BBD,index_order)
-
 
 def form_bbd(ini, nparts):
 
