@@ -19,6 +19,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 <h1> Note </h1>
 
+* Because the Python package nxmetis is now an unmaintained extension, we have disabled the parallel simulation code related to the BBD technique, and the parallel version will be updated once it is ready.
 * Solved power flow JSON files of all test systems have been added, and users can skip step0 for test systems
 * For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state (e.g., sim_snp_S5_50u_1pt.pkl for the 240-bus WECC system), and then conduct different contigency simulations from the snapshot
 * To reduce the required computer memory for storing simulation results on large systems, we recomment using a larger down-smapling rate, e.g., DSrate=50
