@@ -8,7 +8,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 * EMT modeling 
 * EMT Network equation: nodal formulation based on Trapezoidal-rule method
 * EMT network parallel solver: BBD
-* Parallel computation of updateing device states and network historical current
+* Parallel computation of updating device states and network historical current
 * Compatible with HPC
 * Compatible with dynamic-link library (DLL) supported dynamic models
 * Compiled with the just-in-time (JIT) compiler, Numba, in Python
@@ -21,10 +21,11 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 * Because the Python package nxmetis is now an unmaintained extension, we have disabled the parallel simulation code related to the BBD technique, and the parallel version will be updated once it is ready.
 * Solved power flow JSON files of all test systems have been added, and users can skip step0 for test systems.
-* For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state (e.g., sim_snp_S5_50u_1pt.pkl for the 240-bus WECC system), and then conduct different contigency simulations from the snapshot.
-* To reduce the required computer memory for storing simulation results on large systems, we recomment using a larger down-smapling rate, e.g., DSrate=50.
+* For conducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state (e.g., sim_snp_S5_50u_1pt.pkl for the 240-bus WECC system), and then 
+conduct different contingency simulations from the snapshot.
+* To reduce the required computer memory for storing simulation results on large systems, we recommend using a larger down-smapling rate, e.g., DSrate=50.
 * Currently, we have built a lot of new functions, including **Python code for results plotting, bus/line fault simulation, distributed tramsmission line model, forced oscillation simulation, a license-free power flow solver using Python package ANDES, interface with DLL models, and son on. A new version that contains more functions will be released in the near future**.
-* **A user manual webpage of ParaEMT, that include guidance on installation, configuration, and son on, is under development and will be released in the near future**.
+* **A user manual webpage of ParaEMT, that include guidance on installation, configuration, and so on, is under development and will be released in the near future**.
 
 
 <h1> System component library </h1>
@@ -35,7 +36,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 
 <h1> Version Advisory </h1>
 
-* Work with Pyhton v3.7+.
+* Work with Python v3.7+.
 
 <h1> Citing </h1>
 
@@ -50,7 +51,7 @@ M. Xiong, B. Wang, D. Vaidhynathan, J. Maack, M. Reynolds, A. Hoke, K. Sun, D. R
 
 <h1> Getting Started with ParaEMT </h1>
 
-* To conduct EMT simulations using PataEMT, follow these steps:
+* To conduct EMT simulations using ParaEMT, follow these steps:
 
 <img src="https://github.com/NREL/ParaEMT_public/assets/102193041/72beb4a9-4aac-475b-a0ab-980435a339b0" width="800">
 
