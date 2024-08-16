@@ -20,7 +20,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 <h1> Note </h1>
 
 * Solved power flow JSON files of all test systems have been added, and users can skip step0 for test systems
-* For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state (e.g., sim_snp_S5_50u_1pt for the 240-bus WECC system), and then conduct different contigency simulations from the snapshot
+* For cunducting simulations on large systems, we recommend using the snapshot functionality to save a stable steady state (e.g., sim_snp_S5_50u_1pt.pkl for the 240-bus WECC system), and then conduct different contigency simulations from the snapshot
 * To reduce the required computer memory for storing simulation results on large systems, we recomment using a larger down-smapling rate, e.g., DSrate=50
 * Currently, we have built a lot of new functions, including **Python code for results plotting, bus/line fault simulation, distributed tramsmission line model, forced oscillation simulation, a license-free power flow solver using Python package ANDES, interface with DLL models, and son on. A new version that contains more functions will be released in the near future**
 * **A user manual webpage of ParaEMT, that include guidance on installation, configuration, and son on, is under development and will be released in the near future**
