@@ -2,7 +2,7 @@
 setuptools==72.1.0
 xlrd==1.2.0
 matplotlib==3.5.2
-numba==0.60.0
+numba==0.55.2
 numpy==1.21.6
 pandas==2.2.2
 scipy==1.14.0
