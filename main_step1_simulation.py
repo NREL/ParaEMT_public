@@ -25,7 +25,7 @@ def main():
     N_col = 1
 
     ts = 50e-6  # time step, second
-    Tlen = 20  # total simulation time length, second
+    Tlen = 0.01  # total simulation time length, second
     t_release_f = 0.0
     loadmodel_option = 1  # 1-const rlc, 2-const z
     netMod = 'lu'
@@ -34,7 +34,6 @@ def main():
     output_snp_ful = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
     output_snp_1pt = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
     output_res = 'sim_res_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
-
     input_snp = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
 
     t0 = time.time()
