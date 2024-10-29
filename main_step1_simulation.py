@@ -25,7 +25,7 @@ def main():
     N_col = 1
 
     ts = 50e-6  # time step, second
-    Tlen = 0.01  # total simulation time length, second
+    Tlen = 10  # total simulation time length, second
     t_release_f = 0.0
     loadmodel_option = 1  # 1-const rlc, 2-const z
     netMod = 'lu'
@@ -44,7 +44,7 @@ def main():
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
     # ctrl step change
-    emt.t_sc = 100
+    emt.t_sc = 1
     emt.i_gen_sc = 0
     emt.flag_exc_gov = 1  # 0 - exc, 1 - gov
     emt.dsp = - 0.02
