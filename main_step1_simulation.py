@@ -51,7 +51,7 @@ def main():
     emt.flag_sc = 1
 
     # gen trip
-    emt.t_gentrip = 5
+    emt.t_gentrip = 50
     emt.i_gentrip = 0   # 0: 1032 C for WECC 240-bus
     emt.flag_gentrip = 1 
     emt.flag_reinit = 1
