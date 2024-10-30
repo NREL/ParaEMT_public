@@ -4,16 +4,13 @@
 #  Last modified: 8/15/24
 # --------------------------------------------
 
-import sys
 import time
 import os, sys
-import json
 import numpy as np
 from Lib_BW import *
 from psutils import *
 from preprocessscript import get_json_pkl
 from psutils import initialize_bus_fault
-
 workingfolder = '.'
 os.chdir(workingfolder)
 
@@ -58,10 +55,10 @@ def main():
     emt.flag_reinit = 1
 
     # Bus grounding fault, with line trip
-    emt.busfault_t = 10
+    emt.busfault_t = 1
     emt.fault_bus_idx = 0 
-    emt.busfault_tlen = 4/60 # 5 cycles
-    emt.busfault_type = 7 # Check psutils for fault types
+    emt.busfault_tlen = 5/60 # 5 cycles
+    emt.busfault_type = 11 # Check psutils for fault types
     emt.busfault_r = [x / 100000 for x in [1, 1, 1, 1, 1, 1]]
     emt.fault_tripline = 0 # 1: Enable tripping line
     emt.fault_line_idx = 0 #2
@@ -94,8 +91,8 @@ def main():
     # Initialize Bus fault
     if emt.busfault_t > 0.0 and emt.busfault_t < emt.Tlen:
         initialize_bus_fault(pfd,ini,dyd,emt, netMod)
-    
     cap_line=1
+
     while tn*ts < Tlen:
         tn = tn + 1
         emt.StepChange(dyd, ini, tn)                # configure step change in exc or gov references
@@ -124,7 +121,7 @@ def main():
         else:
             emt.net_coe = ini.Init_net_coe2
             if netMod == 'inv':
-                emt.Ginv = ini.Init_net_G2
+                emt.Ginv = ini.Init_net_G2_inv
             elif netMod == 'lu':
                 emt.Glu = ini.Init_net_G2_lu
             emt.brch_range = np.array([0,len(emt.net_coe)]).reshape(2,1) # Min

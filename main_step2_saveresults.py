@@ -17,8 +17,8 @@ def main():
     output_snp_1pt = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u_1pt.pkl'
     output_res = 'sim_res_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
 
-    # with open(output_snp_ful,'rb') as f:
-    with open(output_res,'rb') as f:
+    with open(output_snp_ful,'rb') as f:
+    # with open(output_res,'rb') as f:
         pfd, dyd, ini, emt = pickle.load(f)
 
     Vbus = []

@@ -1509,9 +1509,9 @@ class EmtSimu():
             self.I_RHS = self.Igs + self.Igi + self.node_Ihis + self.Il
 
         if ini.admittance_mode == 'inv':
-            self.Vsol = ini.Init_net_G0_inv * self.I_RHS
+            self.Vsol = self.Ginv * self.I_RHS
         elif ini.admittance_mode == 'lu':
-            self.Vsol = ini.Init_net_G0_lu.solve(self.I_RHS)
+            self.Vsol = self.Glu.solve(self.I_RHS)
         elif ini.admittance_mode == 'bbd':
             tmpIRHS = self.I_RHS[ini.index_order]
             tmpVsol = ini.Init_net_G0_bbd_lu.schur_solve(tmpIRHS)
@@ -2158,7 +2158,8 @@ class EmtSimu():
             Ics_n[genbus_idx] = Ics_n[genbus_idx] + res[2] * dyd.base_Is[i] / (ini.Init_net_IbaseA[genbus_idx] * 1000.0)
 
         #  Solve v
-        Vsol = ini.Init_net_G0_lu.solve(Igs + node_Ihis)
+        # Vsol = ini.Init_net_G0_lu.solve(Igs + node_Ihis)
+        Vsol = self.Vsol
 
         # UpdateIhis
         node_Ihis_out = np.zeros(nbus*3)
@@ -2193,6 +2194,7 @@ class EmtSimu():
         ini.Init_net_G1_lu = []
         ini.Init_net_G2_lu = []
         # output and plot
+        self.Glu = [] # diasbale sparse LU, which cannot be saved
         x = []
         for k, v in self.x.items():
             x.append(v.tolist())
@@ -2545,6 +2547,8 @@ class Initialize():
         self.Init_net_G1 = np.asarray([])
         self.Init_net_coe1 = np.asarray([])
         self.Init_net_G1_inv = np.asarray([])
+        self.Init_net_G1_lu = np.asarray([])
+
         self.Init_net_G1_data = []
         self.Init_net_G1_rows = []
         self.Init_net_G1_cols = []
@@ -2552,6 +2556,7 @@ class Initialize():
         self.Init_net_G2 = np.asarray([])
         self.Init_net_coe2 = np.asarray([])
         self.Init_net_G2_inv = np.asarray([])
+        self.Init_net_G2_lu = np.asarray([])
         self.Init_net_G2_data = []
         self.Init_net_G2_rows = []
         self.Init_net_G2_cols = []
