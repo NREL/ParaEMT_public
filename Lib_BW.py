@@ -1196,6 +1196,10 @@ class EmtSimu():
         self.x_bus_pv_1 = []
         self.v = {}
         self.i = {}
+        self.i_branch = {}
+        self.Ginv = []
+        self.Glu = []
+        self.net_coe = []
 
         self.xp = States(ngen) # seems not necessary, try later and see if they can be deleted
         self.xp_ibr = States_ibr(nibr)
@@ -1211,13 +1215,11 @@ class EmtSimu():
         self.I_RHS = np.zeros(3*nbus)
         self.Vsol = np.zeros(3*nbus)
         self.Vsol_1 = np.zeros(3*nbus)
-
         # self.fft_vabc = []
         # self.fft_T = 1
         # self.fft_N = 0
         # self.fft_vma = {}
         # self.fft_vpn0 = {}
-
 
         self.theta = np.zeros(ngen)
         self.ed_mod = np.zeros(ngen)
@@ -1239,12 +1241,21 @@ class EmtSimu():
         self.flag_gentrip = 1   # 1 - gentrip to be implemented, 0 - gentrip completed
         self.flag_reinit = 1    # 1 - re-init to be implemented, 0 - re-init completed
 
+        # Bus fault
+        self.busfault_t = 1
+        self.fault_bus_idx = 2
+        self.busfault_tlen = 5/60 # 5 cycles
+        self.busfault_type = 1 # Check psutils for fault types
+        self.busfault_r = [0.001, 0.001, 0.001, 0.001, 0.001, 0.001]
+        self.bus_del_ind=[]  #bus delete index
+        self.fault_tripline = 0 
+        self.fault_line_idx = 0 
+        self.add_line_num=0 
 
         # ref at last time step (for calculating dref term)
         self.vref = np.zeros(ngen)
         self.vref_1 = np.zeros(ngen)
         self.gref = np.zeros(ngen)
-
 
         # playback
         self.data = []
@@ -1293,15 +1304,22 @@ class EmtSimu():
         self.Vsol = np.real(ini.Init_net_Vt)
         self.Vsol_1 = np.real(ini.Init_net_Vt)
 
-
-
-
         self.x_pred = {0: self.x[0], 1: self.x[0], 2: self.x[0]}
 
         self.brch_Ihis = ini.Init_brch_Ihis
         self.brch_Ipre = ini.Init_brch_Ipre
         self.node_Ihis = ini.Init_node_Ihis
 
+        term=self.brch_Ipre.copy()
+        term2=9*len(pfd.line_from)
+        term3=9*len(pfd.line_from)+3*len(pfd.xfmr_from) # save  line RL current and transformer current
+        self.i_branch[0]=np.concatenate((term[9*len(pfd.line_from):term3:3], term[0:term2:9],  \
+                                                     term[9*len(pfd.line_from)+1:term3:3],term[1:term2:9],  \
+                                                     term[9*len(pfd.line_from)+2:term3:3], term[2:term2:9]))  
+        
+        self.brch_range = np.array([0,len(self.brch_Ihis)]).reshape(2,1)
+        self.brch_counts = np.array([self.brch_range.size])
+        
         self.vref = ini.Init_mac_vref.copy()
         self.vref_1 = ini.Init_mac_vref.copy()
         self.gref = ini.Init_mac_gref.copy()
@@ -1690,13 +1708,17 @@ class EmtSimu():
 
     def updateIhis(self, ini):
 
-        (brch_Ipre, node_Ihis) = numba_updateIhis(self.brch_Ihis,
-                                                  self.Vsol,
-                                                  ini.Init_net_coe0,
-                                                  ini.Init_net_N)
-        self.brch_Ipre = brch_Ipre
-        self.node_Ihis = node_Ihis
-
+        numba_updateIhis(
+            self.brch_range[:,0],
+            # Altered arguments
+            self.brch_Ihis,
+            self.brch_Ipre,
+            self.node_Ihis,
+            # Constant arguments
+            self.Vsol,
+            self.net_coe,   # ini.Init_net_coe0,
+            ini.Init_net_N
+        )
         return
 
 
@@ -1930,12 +1952,14 @@ class EmtSimu():
         # updateI_BU
         brch_Ihis = self.brch_Ihis
         Vsol = self.Vsol_1
-        Init_net_coe0 = ini.Init_net_coe0
+        Init_net_coe0 = self.net_coe #.Init_net_coe0
 
-        node_Ihis = np.zeros(nbus*3)
+        node_Ihis = self.node_Ihis
+        node_Ihis[:] = 0.0
         brch_Ipre = self.brch_Ipre
 
-        for i in range(len(brch_Ihis)):
+        brch_range = self.brch_range[:,0]
+        for i in range(brch_range[0], brch_range[1]):
             if np.sign(Init_net_coe0[i,3])==1:
                 c1 = 1
                 c2 = 0
@@ -2166,7 +2190,8 @@ class EmtSimu():
     def dump_res(self, pfd, dyd, ini, SimMod, output_snp_ful, output_snp_1pt, output_res):
         # remove SuperLU objects to be compatible with pickle
         ini.Init_net_G0_lu = []
-
+        ini.Init_net_G1_lu = []
+        ini.Init_net_G2_lu = []
         # output and plot
         x = []
         for k, v in self.x.items():
@@ -2515,6 +2540,21 @@ class Initialize():
         self.Init_net_G0_cols = []
 
         self.Init_net_Gt0 = np.asarray([])
+
+        # fault-on and post-fault G matrces
+        self.Init_net_G1 = np.asarray([])
+        self.Init_net_coe1 = np.asarray([])
+        self.Init_net_G1_inv = np.asarray([])
+        self.Init_net_G1_data = []
+        self.Init_net_G1_rows = []
+        self.Init_net_G1_cols = []
+
+        self.Init_net_G2 = np.asarray([])
+        self.Init_net_coe2 = np.asarray([])
+        self.Init_net_G2_inv = np.asarray([])
+        self.Init_net_G2_data = []
+        self.Init_net_G2_rows = []
+        self.Init_net_G2_cols = []
 
         self.Init_net_V = np.asarray([])  # instantaneous value
         self.Init_brch_Ipre = np.asarray([])

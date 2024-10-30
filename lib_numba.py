@@ -2029,15 +2029,18 @@ def numba_updateXibr(
 
 ## WARNING: If parallelized, this function contains race conditions!!
 @numba.jit(nopython=True, nogil=True, boundscheck=False, parallel=False)
-def numba_updateIhis(brch_Ihis, Vsol, Init_net_coe0, nnodes):
-    node_Ihis = np.zeros(nnodes)
-    brch_Ipre = np.zeros(len(Init_net_coe0))
+def numba_updateIhis(brch_range,brch_Ihis,brch_Ipre,node_Ihis,Vsol,Init_net_coe0,nnodes):
 
-    for i in range(len(brch_Ihis)):
+    # brch_Ihis[:] = 0.0
+    # brch_Ipre[:] = 0.0
+    node_Ihis[:] = 0.0
+    
+    for i in range(brch_range[0], brch_range[1]):
+
         Fidx = int(Init_net_coe0[i,0].real)
         Tidx = int(Init_net_coe0[i,1].real)
 
-        if Init_net_coe0[i,1] == -1:
+        if Init_net_coe0[i,1] == -1:  
             if Init_net_coe0[i,2] == 0:
                 continue
             brch_Ipre[i] = Vsol[Fidx]/Init_net_coe0[i,2].real + brch_Ihis[i]
@@ -2048,4 +2051,6 @@ def numba_updateIhis(brch_Ihis, Vsol, Init_net_coe0, nnodes):
             node_Ihis[Tidx] += brch_Ihis_temp.real
         brch_Ihis[i] = brch_Ihis_temp.real
         node_Ihis[Fidx] -= brch_Ihis_temp.real
-    return (brch_Ipre, node_Ihis)
+
+    return
+

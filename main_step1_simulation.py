@@ -12,12 +12,13 @@ import numpy as np
 from Lib_BW import *
 from psutils import *
 from preprocessscript import get_json_pkl
+from psutils import initialize_bus_fault
 
 workingfolder = '.'
 os.chdir(workingfolder)
 
 def main():
-    SimMod = 1  # 0 - Save a snapshot, 1 - run from a snapshot
+    SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
     DSrate = 10 # down sampling rate, i.e. results saved every DSrate sim steps.
 
     systemN = 6 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
@@ -25,10 +26,10 @@ def main():
     N_col = 1
 
     ts = 50e-6  # time step, second
-    Tlen = 10  # total simulation time length, second
+    Tlen = 2  # total simulation time length, second
     t_release_f = 0.0
     loadmodel_option = 1  # 1-const rlc, 2-const z
-    netMod = 'lu'
+    netMod = 'lu'  #'inv': direct inverse, 'lu': LU decomposition
     nparts = 2 # number of blocks in BBD form
 
     output_snp_ful = 'sim_snp_S' + str(systemN) + '_' + str(int(ts * 1e6)) + 'u.pkl'
@@ -44,7 +45,7 @@ def main():
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
     # ctrl step change
-    emt.t_sc = 1
+    emt.t_sc = 10
     emt.i_gen_sc = 0
     emt.flag_exc_gov = 1  # 0 - exc, 1 - gov
     emt.dsp = - 0.02
@@ -55,6 +56,17 @@ def main():
     emt.i_gentrip = 0   # 0: 1032 C for WECC 240-bus
     emt.flag_gentrip = 1 
     emt.flag_reinit = 1
+
+    # Bus grounding fault, with line trip
+    emt.busfault_t = 10
+    emt.fault_bus_idx = 0 
+    emt.busfault_tlen = 4/60 # 5 cycles
+    emt.busfault_type = 7 # Check psutils for fault types
+    emt.busfault_r = [x / 100000 for x in [1, 1, 1, 1, 1, 1]]
+    emt.fault_tripline = 0 # 1: Enable tripping line
+    emt.fault_line_idx = 0 #2
+    emt.bus_del_ind=[]  #bus delete index, do not change
+    emt.add_line_num=0  # Do not change
 
     # Before t = t_release_f, PLL freq are fixed at synchronous freq
     emt.t_release_f = t_release_f
@@ -78,11 +90,54 @@ def main():
     # time loop
     tn = 0
     tsave = 0
+
+    # Initialize Bus fault
+    if emt.busfault_t > 0.0 and emt.busfault_t < emt.Tlen:
+        initialize_bus_fault(pfd,ini,dyd,emt, netMod)
+    
+    cap_line=1
     while tn*ts < Tlen:
         tn = tn + 1
-
         emt.StepChange(dyd, ini, tn)                # configure step change in exc or gov references
         emt.GenTrip(pfd, dyd, ini, tn, netMod)      # configure generation trip
+
+        if tn*ts < emt.busfault_t:
+            emt.net_coe = ini.Init_net_coe0
+            # emt.Ginv = ini.Init_net_G0 #TODO: Check whether this is correct? No inverse at all
+            if netMod == 'inv':
+                emt.Ginv=ini.Init_net_G0_inv
+            elif netMod == 'lu':
+                emt.Glu = ini.Init_net_G0_lu
+            emt.brch_range = np.array([0,len(emt.net_coe)]).reshape(2,1) # 
+        elif (tn*ts >= emt.busfault_t) and (tn*ts < emt.busfault_t+emt.busfault_tlen):
+            # emt.Ginv = ini.Init_net_G1
+            emt.net_coe = ini.Init_net_coe1
+            if netMod == 'inv':
+                emt.Ginv=ini.Init_net_G1_inv
+            elif netMod == 'lu':
+                emt.Glu = ini.Init_net_G1_lu
+            emt.brch_range = np.array([0,len(emt.net_coe)]).reshape(2,1) # Min, consider new lines under fault
+            if cap_line==1: # do it only once
+                emt.brch_Ipre= np.append(emt.brch_Ipre,np.zeros(emt.add_line_num)) # added line, Ipre=0
+                emt.brch_Ihis= np.append(emt.brch_Ihis,np.zeros(emt.add_line_num))
+                cap_line=0
+        else:
+            emt.net_coe = ini.Init_net_coe2
+            if netMod == 'inv':
+                emt.Ginv = ini.Init_net_G2
+            elif netMod == 'lu':
+                emt.Glu = ini.Init_net_G2_lu
+            emt.brch_range = np.array([0,len(emt.net_coe)]).reshape(2,1) # Min
+            if cap_line==0: # do it only once
+                if emt.fault_tripline == 0:
+                    emt.brch_Ipre=emt.brch_Ipre[:-emt.add_line_num]
+                    emt.brch_Ihis=emt.brch_Ihis[:-emt.add_line_num] # delete those added lines
+                if emt.fault_tripline == 1:  
+                    emt.brch_Ipre=emt.brch_Ipre[:-emt.add_line_num]
+                    emt.brch_Ihis=emt.brch_Ihis[:-emt.add_line_num] # delete those added lines
+                    emt.brch_Ipre=np.delete(emt.brch_Ipre, emt.bus_del_ind, 0) # 0 delete row
+                    emt.brch_Ihis=np.delete(emt.brch_Ihis, emt.bus_del_ind, 0) # Delete those related to tripped lines, to match the index in update Ihis                 
+                cap_line=1
 
         tl_0 = time.time()
         emt.predictX(pfd, dyd, emt.ts)
@@ -142,11 +197,20 @@ def main():
                 emt.x_load[tsave] = emt.x_load_pv_1.copy()
 
             emt.v[tsave] = emt.Vsol.copy()
-
+            term=emt.brch_Ipre.copy()
+            term2=9*len(pfd.line_from)
+            term3=9*len(pfd.line_from)+3*len(pfd.xfmr_from) # save only line RL current and transformer current
+            emt.i_branch[tsave]=np.concatenate((term[9*len(pfd.line_from):term3:3], term[0:term2:9],  \
+                                                            term[9*len(pfd.line_from)+1:term3:3],term[1:term2:9],  \
+                                                            term[9*len(pfd.line_from)+2:term3:3], term[2:term2:9]))  
+   
         tl_10 = time.time()
 
         # re-init
-        if (emt.flag_gentrip == 0) & (emt.flag_reinit == 1):
+        if ((emt.flag_gentrip == 0) & (emt.flag_reinit == 1) or
+            (tn*ts >= emt.busfault_t and (tn - 1)*ts < emt.busfault_t) or
+            (tn*ts >= emt.busfault_t + emt.busfault_tlen and (tn - 1)*ts < emt.busfault_t + emt.busfault_tlen)
+            ):
             emt.Re_Init(pfd, dyd, ini)
         else:
             emt.updateIhis(ini)
