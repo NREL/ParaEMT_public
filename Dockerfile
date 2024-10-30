@@ -26,3 +26,5 @@ EXPOSE 8888
 
 # Run Jupyter Notebook and open access to all IPs on port 8888
 CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
+
+# Run this code by:   docker build -t oedi-si-paraemt .
