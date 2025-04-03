@@ -3098,7 +3098,7 @@ class Initialize():
             else:
                 self.Init_ZL_ang[i] = np.arctan(pfd.load_Mvar[i] / pfd.load_MW[i]) + np.pi
 
-    def MergeMacG(self, pfd, dyd, ts, i_gentrip = [], mode='inv', nparts=4):
+    def MergeMacG(self, pfd, dyd, ts, i_gentrip , mode='inv', nparts=4):
         self.Init_net_Gt0 = sp.coo_matrix((self.Init_net_G0_data, (self.Init_net_G0_rows, self.Init_net_G0_cols)),
                                          shape=(self.Init_net_N, self.Init_net_N)
                                          ).tolil()
@@ -3251,7 +3251,7 @@ class Initialize():
 
             N1 = len(pfd.bus_num)
             N2 = len(pfd.bus_num) * 2
-            if i_gentrip:
+            if i_gentrip != []:
                 if i_gentrip != i:
                     self.addtoG0(genbus_idx, genbus_idx, self.Init_mac_Gequiv[i][0][0])
                     self.addtoG0(genbus_idx, genbus_idx + N1, self.Init_mac_Gequiv[i][0][1])

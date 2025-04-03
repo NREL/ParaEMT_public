@@ -17,7 +17,7 @@ workingfolder = '.'
 os.chdir(workingfolder)
 
 def main():
-    SimMod = 1  # 0 - Save a snapshot, 1 - run from a snapshot
+    SimMod = 0  # 0 - Save a snapshot, 1 - run from a snapshot
     DSrate = 10 # down sampling rate, i.e. results saved every DSrate sim steps.
 
     systemN = 6 # 1: 2-gen, 2: 9-bus, 3: 39-bus, 4: 179-bus, 5: 240-bus, 6: 2-area
@@ -44,14 +44,14 @@ def main():
 
     ## ---------------------- other simulation setting ----------------------------------------------------------
     # ctrl step change
-    emt.t_sc = 1
+    emt.t_sc = 100
     emt.i_gen_sc = 0
     emt.flag_exc_gov = 1  # 0 - exc, 1 - gov
     emt.dsp = - 0.02
     emt.flag_sc = 1
 
     # gen trip
-    emt.t_gentrip = 50
+    emt.t_gentrip = 1
     emt.i_gentrip = 0   # 0: 1032 C for WECC 240-bus
     emt.flag_gentrip = 1 
     emt.flag_reinit = 1
