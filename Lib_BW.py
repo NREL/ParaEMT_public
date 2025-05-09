@@ -784,7 +784,7 @@ class DyData():
                 self.gen_genrou_n = self.gen_genrou_n + 1
                 nn = 1
                 self.gen_genrou_bus = np.append(self.gen_genrou_bus, float(gen_data.cell_value(0, i + 1)))
-                self.gen_genrou_id = np.append(self.gen_genrou_bus, gen_data.cell_value(1, i + 1))
+                self.gen_genrou_id = np.append(self.gen_genrou_id, gen_data.cell_value(1, i + 1))
                 self.gen_genrou_Td0p = np.append(self.gen_genrou_Td0p, float(gen_data.cell_value(2 + nn, i + 1)))
                 self.gen_genrou_Td0pp = np.append(self.gen_genrou_Td0pp, float(gen_data.cell_value(3 + nn, i + 1)))
                 self.gen_genrou_Tq0p = np.append(self.gen_genrou_Tq0p, float(gen_data.cell_value(4 + nn, i + 1)))
