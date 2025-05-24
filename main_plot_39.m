@@ -11,23 +11,23 @@ tend = 10;
 dr = 10;
 ts = dr*50e-6;
 
-bus_n = 9;
+bus_n = 39;
 bus_odr = 6;
-load_n = 3;
+load_n = 19;
 load_odr = 4;
 
 gen_genrou_odr = 18;
-gen_genrou_n = 3;  
+gen_genrou_n = 10;  
 exc_sexs_odr = 2;
-exc_sexs_n = 3; 
+exc_sexs_n = 10; 
 gov_tgov1_odr = 3;
 gov_tgov1_n = 0; 
 gov_hygov_odr = 5;
 gov_hygov_n = 0;
 gov_gast_odr = 4;
-gov_gast_n = 3;
+gov_gast_n = 10;
 pss_ieeest_odr = 10;
-pss_ieeest_n = 3;
+pss_ieeest_n = 0;
         
 t = table2array(dataT(:,1));
 st = 1;
