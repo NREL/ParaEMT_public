@@ -25,7 +25,7 @@ Welcome to the ParaEMT simulation package! This open-source tool aims to provide
 conduct different contingency simulations from the snapshot.
 * To reduce the required computer memory for storing simulation results on large systems, we recommend using a larger down-smapling rate, e.g., DSrate=50.
 * Currently, we have built a lot of new functions, including **Python code for results plotting, bus/line fault simulation, distributed tramsmission line model, forced oscillation simulation, a license-free power flow solver using Python package ANDES, interface with DLL models, and son on. A new version that contains more functions will be released in the near future**.
-* **A user manual webpage of ParaEMT, that includes guidance on installation, configuration, and so on, is under development and will be released in the near future**.
+* **A user manual webpage of ParaEMT, that includes guidance on installation, configuration, and so on, was developed and will be released in the near future**.
 
 
 <h1> System component library </h1>
